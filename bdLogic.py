@@ -31,7 +31,8 @@ def create_db():
     db.close()
 
 
-def add_user(email, nickname, password, token = secrets.token_hex(16)):    
+
+def add_user(nickname, email, password, token = secrets.token_hex(16)):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
     cursor.execute(f"INSERT INTO users(email, nickname, password, token) VALUES('"+email+"', '"+nickname+"', '"+password+"', '"+token+"')")
@@ -46,6 +47,7 @@ def add_file(user_id, file, date=str(datetime.now())):
     db.commit()
     db.close()
 
+
 def select_all():    
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
@@ -53,6 +55,7 @@ def select_all():
     answer = cursor.fetchall()
     db.close()
     return answer
+
 
 def check_user(nickname):    
     db = sqlite3.connect('main.db')
@@ -88,6 +91,7 @@ def search_by_email(email):  #get token
     return answer
 
 
+
 def get_user_id(nickname):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
@@ -95,6 +99,7 @@ def get_user_id(nickname):
     answer = cursor.fetchall()[0][0]
     db.close()
     return answer
+
 
 
 def del_user(nickname):    
@@ -118,8 +123,7 @@ def update_file(file_id, new_file, date=str(datetime.now())):
     cursor = db.cursor()
     cursor.execute("UPDATE uploaded_files SET file='"+new_file+"', date='"+date+"' WHERE id=='"+file_id+"'")
     db.commit()
-    db.close()
-    
+    db.close()    
 
 
 def get_files(user_id, sorted_by='date', sort_max=0):
@@ -139,7 +143,5 @@ def get_dates(first_date, second_date):
     answer = cursor.fetchall()
     db.close()
     return answer
-
-
 
 
