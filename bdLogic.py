@@ -31,7 +31,7 @@ def create_db():
     db.close()
 
 
-def add_user(email, nickname, password, token = secrets.token_hex(16)):    
+def add_user(nickname, email, password, token = secrets.token_hex(16)):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
     cursor.execute(f"INSERT INTO users(email, nickname, password, token) VALUES('"+email+"', '"+nickname+"', '"+password+"', '"+token+"')")
@@ -46,6 +46,7 @@ def add_file(user_id, file, date=str(datetime.now())):
     db.commit()
     db.close()
 
+
 def select_all():    
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
@@ -53,6 +54,7 @@ def select_all():
     answer = cursor.fetchall()
     db.close()
     return answer
+
 
 def check_user(nickname):    
     db = sqlite3.connect('main.db')
