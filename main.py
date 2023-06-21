@@ -1,11 +1,12 @@
 import os
 import secrets
 import string
+from datetime import date
 
 from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 
-from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email
+from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file
 
 app = FastAPI()
 
@@ -24,13 +25,12 @@ def sign_up(user_name: str, user_email: EmailStr, password: str):
             'description': 'The username already signed up'
         }}
     add_user(user_name, user_email, password, token)
-    os.mkdir(os.path.join(os.getcwd(), 'users_data', user_email))
+    os.mkdir(os.path.join(os.getcwd(), 'users_data', user_name))
     return {'status': 'success', 'error': None, 'user_name': user_name, 'token': token}
 
 
 @app.post('/sign_in')
 def sign_in(user_email: EmailStr, password: str):
-    print(authorization(user_email, password))
     if authorization(user_email, password) == 0:
         return {'status': 'failed', 'error': {
             'code': 411,
@@ -45,9 +45,10 @@ async def upload_data(token: str, file: UploadFile = File(...)):
     user_name = search_by_token(token)
     if user_name:
         filename = file.filename
-        with open(os.path.join(os.getcwd(), 'users_data', user_name) + filename, "wb") as f:
+        with open(os.path.join(os.getcwd(), 'users_data', user_name, filename), "wb") as f:
             f.write(await file.read())
-
+        user_id = get_user_id(user_name)
+        add_file(user_id, filename)
         return {'status': 'success', 'error': None}
     else:
         return {'status': 'failed', 'error': {
@@ -56,9 +57,15 @@ async def upload_data(token: str, file: UploadFile = File(...)):
         }}
 
 
-@app.get("/get_data")
-def get_data(token: str):
+@app.get("/get_last_data")
+def get_last_data(token: str, num: int = 5):
     pass
+
+
+@app.get("/get_data")
+def get_data(token: str, start_date: date, finish_date: date):
+    pass
+
 
 def generate_token(length=16):
     characters = string.ascii_letters + string.digits
