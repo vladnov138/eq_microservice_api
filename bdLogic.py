@@ -79,4 +79,37 @@ def search_by_token(token):
     return answer
 
 
+def search_by_email(email):  #get token  
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE email=='"+email+"'")
+    answer = cursor.fetchall()[0][4]
+    db.close()
+    return answer
+
+
+def del_user(nickname):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM users WHERE nickname=='"+nickname+"'")
+    db.commit()
+    db.close()
+
+
+def del_file(file_id):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM uploaded_files WHERE id=='"+file_id+"'")
+    db.commit()
+    db.close()
+
+
+def update_file(file_id, new_file, date=str(datetime.now())):
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("UPDATE uploaded_files SET file='"+new_file+"', date='"+date+"' WHERE id=='"+file_id+"'")
+    db.commit()
+    db.close()
+
+update_file('4', "GG")
 
