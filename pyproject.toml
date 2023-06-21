@@ -10,9 +10,10 @@ packages = [{include = "eq_microservice_api"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.97.0"
-pydantic = "^1.10.9"
+pydantic = {extras = ["email"], version = "^1.10.9"}
 SQLAlchemy = "^2.0.16"
 uvicorn = "^0.22.0"
+python-multipart = "^0.0.6"
 
 
 [build-system]
