@@ -31,6 +31,12 @@ def create_db():
     db.commit()
 
 
+def add_user(email, nickname, password, token = secrets.token_hex(16)):
+    cursor.execute(f"INSERT INTO users(email, nickname, password, token) VALUES('"+email+"', '"+nickname+"', '"+password+"', '"+token+"')")
+    db.commit()
+
+
+
 
 
 db.close()
