@@ -104,5 +104,12 @@ def del_file(file_id):
     db.close()
 
 
+def update_file(file_id, new_file, date=str(datetime.now())):
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("UPDATE uploaded_files SET file='"+new_file+"', date='"+date+"' WHERE id=='"+file_id+"'")
+    db.commit()
+    db.close()
 
+update_file('4', "GG")
 
