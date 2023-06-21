@@ -1,6 +1,7 @@
 
 import sqlite3
 import secrets #needed to generate a token
+from datetime import datetime
 
 
 db = sqlite3.connect('main.db')
@@ -37,6 +38,11 @@ def add_user(email, nickname, password, token = secrets.token_hex(16)):
 
 
 
+def add_file(user_id, file, date=str(datetime.now())):
+    cursor.execute(f"INSERT INTO uploaded_files(user_id, date, file) VALUES('"+str(user_id)+"', '"+date+"', '"+file+"')")
+    db.commit()
+
+create_db()
 
 
 db.close()
