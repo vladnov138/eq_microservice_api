@@ -79,4 +79,19 @@ def search_by_token(token):
     return answer
 
 
+def del_user(nickname):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM users WHERE nickname=='"+nickname+"'")
+    db.commit()
+    db.close()
 
+
+def del_file(file_id):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM uploaded_files WHERE id=='"+file_id+"'")
+    db.commit()
+    db.close()
+
+del_file('3')
