@@ -88,6 +88,15 @@ def search_by_email(email):  #get token
     return answer
 
 
+def get_user_id(nickname):
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE nickname=='"+nickname+"'")
+    answer = cursor.fetchall()[0][0]
+    db.close()
+    return answer
+
+
 def del_user(nickname):    
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
@@ -110,6 +119,15 @@ def update_file(file_id, new_file, date=str(datetime.now())):
     cursor.execute("UPDATE uploaded_files SET file='"+new_file+"', date='"+date+"' WHERE id=='"+file_id+"'")
     db.commit()
     db.close()
+    
 
-update_file('4', "GG")
+
+def get_files(user_id, sorted_by='date', sort_max=0):
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    _sorted=['ASC', 'DESC']
+    cursor.execute("SELECT * FROM uploaded_files WHERE user_id=='"+user_id+"' ORDER BY "+sorted_by+" "+_sorted[sort_max]+"")
+    answer = cursor.fetchall()
+    db.close()
+    return answer
 
