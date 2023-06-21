@@ -42,7 +42,21 @@ def add_file(user_id, file, date=str(datetime.now())):
     cursor.execute(f"INSERT INTO uploaded_files(user_id, date, file) VALUES('"+str(user_id)+"', '"+date+"', '"+file+"')")
     db.commit()
 
-create_db()
+def select_all():
+    cursor.execute("SELECT * FROM users'")
+    print(cursor.fetchall(), len(cursor.fetchall()))
 
+
+def check_user(nickname):
+    cursor.execute("SELECT * FROM users WHERE nickname=='"+nickname+"'")
+    return len(cursor.fetchall())
+
+def authorization(email, password):
+    cursor.execute("SELECT * FROM users WHERE email=='"+email+"' AND password=='"+password+"'")
+    return len(cursor.fetchall())
+    
+def search_by_token(token):
+    cursor.execute("SELECT * FROM users WHERE token=='"+token+"'")
+    return cursor.fetchall()[0][2]
 
 db.close()
