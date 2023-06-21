@@ -111,5 +111,4 @@ def update_file(file_id, new_file, date=str(datetime.now())):
     db.commit()
     db.close()
 
-update_file('4', "GG")
 
