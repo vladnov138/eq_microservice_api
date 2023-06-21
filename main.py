@@ -1,9 +1,8 @@
-import os
 import secrets
 import string
 from datetime import date
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from pydantic import EmailStr
 
 from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file
@@ -11,12 +10,7 @@ from bdLogic import check_user, add_user, authorization, search_by_token, search
 app = FastAPI()
 
 
-@app.get('/')
-def test():
-    return search_by_token('1')
-
-
-@app.post("/sign_up")
+@api.post("/sign_up")
 def sign_up(user_name: str, user_email: EmailStr, password: str):
     token = generate_token()
     if check_user(user_name) > 0:
@@ -29,7 +23,7 @@ def sign_up(user_name: str, user_email: EmailStr, password: str):
     return {'status': 'success', 'error': None, 'user_name': user_name, 'token': token}
 
 
-@app.post('/sign_in')
+@api.post('/sign_in')
 def sign_in(user_email: EmailStr, password: str):
     if authorization(user_email, password) == 0:
         return {'status': 'failed', 'error': {
