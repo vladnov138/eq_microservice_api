@@ -79,6 +79,15 @@ def search_by_token(token):
     return answer
 
 
+def search_by_email(email):  #get token  
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE email=='"+email+"'")
+    answer = cursor.fetchall()[0][4]
+    db.close()
+    return answer
+
+
 def del_user(nickname):    
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
@@ -94,4 +103,6 @@ def del_file(file_id):
     db.commit()
     db.close()
 
-del_file('3')
+
+
+
