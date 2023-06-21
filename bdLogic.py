@@ -131,3 +131,12 @@ def get_files(user_id, sorted_by='date', sort_max=0):
     db.close()
     return answer
 
+
+def get_dates():
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
+    _sorted=['ASC', 'DESC']
+    cursor.execute("SELECT * FROM uploaded_files WHERE user_id=='"+user_id+"' ORDER BY "+sorted_by+" "+_sorted[sort_max]+"")
+    answer = cursor.fetchall()
+    db.close()
+    return answer
