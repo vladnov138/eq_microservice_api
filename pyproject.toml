@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "eq-microservice-api"
+version = "0.1.0"
+description = ""
+authors = ["vladnov138, nech14"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "eq_microservice_api"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.97.0"
+pydantic = "^1.10.9"
+SQLAlchemy = "^2.0.16"
+uvicorn = "^0.22.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
