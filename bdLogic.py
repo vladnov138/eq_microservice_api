@@ -126,11 +126,11 @@ def update_file(file_id, new_file, date=str(datetime.now())):
     db.close()    
 
 
-def get_files(user_id, sorted_by='date', sort_max=0):
+def get_files(user_id, sorted_by='date', sort_max=0, limit=10):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
     _sorted=['ASC', 'DESC']
-    cursor.execute("SELECT * FROM uploaded_files WHERE user_id=='"+user_id+"' ORDER BY "+sorted_by+" "+_sorted[sort_max]+"")
+    cursor.execute("SELECT * FROM uploaded_files WHERE user_id=='"+str(user_id)+"' ORDER BY "+sorted_by+" "+_sorted[sort_max]+" LIMIT "+str(limit)+"")
     answer = cursor.fetchall()
     db.close()
     return answer
