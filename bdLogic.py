@@ -136,10 +136,10 @@ def get_files(user_id, sorted_by='date', sort_max=0, limit=10):
     return answer
 
 
-def get_dates(first_date, second_date):
+def get_dates(user_id, first_date, second_date):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM uploaded_files WHERE date BETWEEN '"+first_date+"' AND '"+second_date+"'")
+    cursor.execute("SELECT * FROM uploaded_files WHERE user_id=='"+str(user_id)+"' AND date BETWEEN '"+first_date+"' AND '"+second_date+"'")
     answer = cursor.fetchall()
     db.close()
     return answer

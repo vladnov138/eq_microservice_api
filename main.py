@@ -1,16 +1,18 @@
+import os
 import secrets
 import string
 from datetime import date
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 
-from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file
+from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file, \
+    get_files, get_dates
 
 app = FastAPI()
 
 
-@api.post("/sign_up")
+@app.post("/sign_up")
 def sign_up(user_name: str, user_email: EmailStr, password: str):
     token = generate_token()
     if check_user(user_name) > 0:
@@ -23,7 +25,7 @@ def sign_up(user_name: str, user_email: EmailStr, password: str):
     return {'status': 'success', 'error': None, 'user_name': user_name, 'token': token}
 
 
-@api.post('/sign_in')
+@app.post('/sign_in')
 def sign_in(user_email: EmailStr, password: str):
     if authorization(user_email, password) == 0:
         return {'status': 'failed', 'error': {
@@ -52,13 +54,29 @@ async def upload_data(token: str, file: UploadFile = File(...)):
 
 
 @app.get("/get_last_data")
-def get_last_data(token: str, num: int = 5):
-    pass
+def get_last_data(token: str, limit: int = 5):
+    user_name = search_by_token(token)
+    if user_name:
+        user_id = get_user_id(user_name)
+        return {'status': 'success', 'error': None, 'data': get_files(user_id, limit=limit)}
+    else:
+        return {'status': 'failed', 'error': {
+            'code': 412,
+            'description': 'Wrong token'
+        }}
 
 
 @app.get("/get_data")
 def get_data(token: str, start_date: date, finish_date: date):
-    pass
+    user_name = search_by_token(token)
+    if user_name:
+        user_id = get_user_id(user_name)
+        return {'status': 'success', 'error': None, 'data': get_dates(user_id, start_date, finish_date)}
+    else:
+        return {'status': 'failed', 'error': {
+            'code': 412,
+            'description': 'Wrong token'
+        }}
 
 
 def generate_token(length=16):
