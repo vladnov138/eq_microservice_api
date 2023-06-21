@@ -7,7 +7,7 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 
 from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file, \
-    get_files, get_dates
+    get_files, get_dates, update_file, del_file
 
 app = FastAPI()
 
@@ -72,6 +72,37 @@ def get_data(token: str, start_date: date, finish_date: date):
     if user_name:
         user_id = get_user_id(user_name)
         return {'status': 'success', 'error': None, 'data': get_dates(user_id, start_date, finish_date)}
+    else:
+        return {'status': 'failed', 'error': {
+            'code': 412,
+            'description': 'Wrong token'
+        }}
+
+
+@app.post("/update_data")
+def update_data(token: str, data_id: int, file: UploadFile = File(...)):
+    user_name = search_by_token(token)
+    if user_name:
+        filename = file.filename
+        with open(os.path.join(os.getcwd(), 'users_data', user_name, filename), "wb") as f:
+            f.write(await file.read())
+        user_id = get_user_id(user_name)
+        update_file(data_id, filename)
+        return {'status': 'success', 'error': None}
+    else:
+        return {'status': 'failed', 'error': {
+            'code': 412,
+            'description': 'Wrong token'
+        }}
+
+
+@app.post("/delete_data")
+def delete_data(token: str, data_id: int):
+    user_name = search_by_token(token)
+    if user_name:
+        user_id = get_user_id(user_name)
+        del_file(data_id)
+        return {'status': 'success', 'error': None}
     else:
         return {'status': 'failed', 'error': {
             'code': 412,
