@@ -6,7 +6,7 @@ from datetime import date
 from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 
-from bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file, \
+from modules.bdLogic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, add_file, \
     get_files, get_dates, update_file, del_file
 
 app = FastAPI()

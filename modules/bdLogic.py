@@ -1,6 +1,6 @@
 
 import sqlite3
-import secrets #needed to generate a token
+import secrets
 from datetime import datetime
 
 def create_db():    
