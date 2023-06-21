@@ -3,12 +3,10 @@ import sqlite3
 import secrets #needed to generate a token
 from datetime import datetime
 
+def create_db():    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
 
-db = sqlite3.connect('main.db')
-
-cursor = db.cursor()
-
-def create_db():
     cursor.execute("""
         CREATE TABLE users (
                 id integer PRIMARY KEY AUTOINCREMENT,
@@ -30,33 +28,55 @@ def create_db():
     """)
     
     db.commit()
+    db.close()
 
 
-def add_user(email, nickname, password, token = secrets.token_hex(16)):
+def add_user(email, nickname, password, token = secrets.token_hex(16)):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute(f"INSERT INTO users(email, nickname, password, token) VALUES('"+email+"', '"+nickname+"', '"+password+"', '"+token+"')")
     db.commit()
+    db.close()
 
 
-
-def add_file(user_id, file, date=str(datetime.now())):
+def add_file(user_id, file, date=str(datetime.now())):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute(f"INSERT INTO uploaded_files(user_id, date, file) VALUES('"+str(user_id)+"', '"+date+"', '"+file+"')")
     db.commit()
+    db.close()
 
-def select_all():
+def select_all():    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute("SELECT * FROM users'")
-    print(cursor.fetchall(), len(cursor.fetchall()))
+    answer = cursor.fetchall()
+    db.close()
+    return answer
 
-
-def check_user(nickname):
+def check_user(nickname):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE nickname=='"+nickname+"'")
-    return len(cursor.fetchall())
+    answer = len(cursor.fetchall())
+    db.close()
+    return answer
 
-def authorization(email, password):
+def authorization(email, password):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE email=='"+email+"' AND password=='"+password+"'")
-    return len(cursor.fetchall())
+    answer = len(cursor.fetchall())
+    db.close()
+    return answer
     
-def search_by_token(token):
+def search_by_token(token):    
+    db = sqlite3.connect('main.db')
+    cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE token=='"+token+"'")
-    return cursor.fetchall()[0][2]
+    answer = cursor.fetchall()[0][2]
+    db.close()
+    return answer
 
-db.close()
+
+
