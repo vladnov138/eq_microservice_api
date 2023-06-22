@@ -27,6 +27,7 @@ class Uploaded_file(Base):
     user_id = Column(Integer)
     date = Column(DateTime)
     file = Column(Text)
+    directory_id = Column(Integer)
     range_start = Column(DateTime)
     range_end = Column(DateTime)
 
