@@ -34,5 +34,10 @@ def check_user(nickname:str):
     return bool(user)
 
 
+def authorization(email:str, password:str):
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.email==email).filter(User.password==password).first()
+    return bool(user)
 
-        
+
+
