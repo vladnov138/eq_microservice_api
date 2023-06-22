@@ -89,7 +89,7 @@ def del_file(file_id:int):
         db.commit()
 
 
-def update_file(file_id, new_file, date=datetime.now()):
+def update_file(file_id:int, new_file:str, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id==file_id).first()
         file.file = new_file
