@@ -46,19 +46,19 @@ def search_by_token(token:str): #get email
     return user.email
 
 
-def search_by_email(email): # get token
+def search_by_email(email:str): # get token
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.email==email).first()
     return user.token
 
 
-def get_user_id(nickname):
+def get_user_id(nickname:str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.nickname==nickname).first()
     return user.id
 
 
-def get_files(user_id, sort_max=0, limit=10):
+def get_files(user_id:int, sort_max=0, limit=10):
     if sort_max:
         with session(autoflush=False, bind=engine) as db:
             files = db.query(Uploaded_file).filter(Uploaded_file.user_id==user_id).order_by(Uploaded_file.date.asc()).limit(limit).all()
@@ -69,11 +69,39 @@ def get_files(user_id, sort_max=0, limit=10):
     return files
 
 
-def get_dates(user_id, first_date, second_date):
+def get_dates(user_id:int, first_date, second_date):
     with session(autoflush=False, bind=engine) as db:
         files = db.query(Uploaded_file).filter(Uploaded_file.date>=first_date, Uploaded_file.date<=second_date).all()
     return files
 
+
+def del_user(nickname:str):
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.nickname==nickname).first()
+        db.delete(user)
+        db.commit()
+
+
+def del_file(file_id:int):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.id==file_id).first()
+        db.delete(file)
+        db.commit()
+
+
+def update_file(file_id:int, new_file:str, date=datetime.now()):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.id==file_id).first()
+        file.file = new_file
+        file.date = date
+
+        db.commit()
+
+
+
+
+
+    
 
 
 
