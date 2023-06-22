@@ -58,6 +58,25 @@ def get_user_id(nickname):
     return user.id
 
 
+def get_files(user_id, sort_max=0, limit=10):
+    if sort_max:
+        with session(autoflush=False, bind=engine) as db:
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id==user_id).order_by(Uploaded_file.date.asc()).limit(limit).all()
+    
+    else:
+        with session(autoflush=False, bind=engine) as db:
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id==user_id).order_by(Uploaded_file.date.desc()).limit(limit).all()
+    return files
+
+
+def get_dates(user_id, first_date, second_date):
+    with session(autoflush=False, bind=engine) as db:
+        files = db.query(Uploaded_file).filter(Uploaded_file.date>=first_date, Uploaded_file.date<=second_date).all()
+    return files
+
+
+
+
 
 
 
