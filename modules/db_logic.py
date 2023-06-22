@@ -23,7 +23,9 @@ def create_db():
                 id integer PRIMARY KEY AUTOINCREMENT,
                 user_id integer,
                 date datetime,
-                file integer
+                file text,
+                range_start datetime,
+                range_end datetime
         )
     """)
 
@@ -35,7 +37,7 @@ def add_user(nickname, email, password, token=secrets.token_hex(16)):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
     cursor.execute(
-        f"INSERT INTO users(email, nickname, password, token) VALUES('" + email + "', '" + nickname + "', '" + password + "', '" + token + "')")
+        "INSERT INTO users(email, nickname, password, token) VALUES('" + email + "', '" + nickname + "', '" + password + "', '" + token + "')")
     db.commit()
     db.close()
 
@@ -43,7 +45,7 @@ def add_user(nickname, email, password, token=secrets.token_hex(16)):
 def add_file(user_id, file, date=str(datetime.now())):
     db = sqlite3.connect('main.db')
     cursor = db.cursor()
-    cursor.execute(f"INSERT INTO uploaded_files(user_id, date, file) VALUES('" + str(
+    cursor.execute("INSERT INTO uploaded_files(user_id, date, file) VALUES('" + str(
         user_id) + "', '" + date + "', '" + file + "')")
     db.commit()
     db.close()
