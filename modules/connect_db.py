@@ -25,9 +25,9 @@ class Uploaded_file(Base):
     __tablename__ = "uploaded_files"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer)
-    date = Column(DateTime)
-    file = Column(Text)
+    date = Column(DateTime)    
     directory_id = Column(Integer)
+    file = Column(Text)
     range_start = Column(DateTime)
     range_end = Column(DateTime)
 

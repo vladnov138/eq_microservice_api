@@ -10,6 +10,12 @@ def add_user(email:str, nickname:str, password:str, token=secrets.token_hex(16))
                         password=password, token=token)
         db.add(new_user)
         db.commit()
-        print('gg', new_user.id)
 
-add_user('gg_boy@mail.ru', 'gg_boy', '1234')
+
+def add_file(user_id, directory_id, file, range_start, range_end, date=str(datetime.now())):
+    with session(autoflush=False, bind=engine) as db:
+        new_file = User(user_id = user_id, date=date,
+                        directory_id = directory_id, file = file,
+                        range_start = range_start, range_end = range_end)
+        db.add(new_user)
+        db.commit()
