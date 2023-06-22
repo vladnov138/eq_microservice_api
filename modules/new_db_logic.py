@@ -40,4 +40,25 @@ def authorization(email:str, password:str):
     return bool(user)
 
 
+def search_by_token(token:str): #get email
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.token==token).first()
+    return user.email
+
+
+def search_by_email(email): # get token
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.email==email).first()
+    return user.token
+
+
+def get_user_id(nickname):
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.nickname==nickname).first()
+    return user.id
+
+
+
+
+
 
