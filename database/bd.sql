@@ -10,7 +10,12 @@ CREATE TABLE uploaded_files (
 	id integer PRIMARY KEY AUTOINCREMENT,
 	user_id integer,
 	date datetime,
-	file integer
+	file text,
+	range_start datetime,
+	range_end datetime
 );
+
+
+
 
 
