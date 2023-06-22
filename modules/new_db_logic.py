@@ -26,3 +26,13 @@ def add_file(user_id:int, directory_id:int, file:str, range_start:datetime, rang
                         range_start = range_start, range_end = range_end)
         db.add(new_file)
         db.commit()
+
+
+def check_user(nickname:str):
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.nickname==nickname).first()
+    return bool(user)
+
+
+
+        
