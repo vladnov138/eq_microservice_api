@@ -1,3 +1,7 @@
+import secrets
+import string
+
+
 def generate_token(length=16) -> str:
     """Generates token of selected length"""
     characters = string.ascii_letters + string.digits
