@@ -1,4 +1,5 @@
 from modules.connect_db import User, Uploaded_file, Directory, engine, session
+from sqlalchemy.orm import Session
 import secrets
 from datetime import datetime
 
@@ -9,6 +10,8 @@ def add_user(email: str, nickname: str, password: str, token=secrets.token_hex(1
                         password=password, token=token)
         db.add(new_user)
         db.commit()
+        db.refresh(new_user)
+    return new_user
 
 
 def add_directory(user_id: int, name_directory: str):
