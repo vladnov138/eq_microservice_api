@@ -1,4 +1,4 @@
-from modules.connect_db import User, Uploaded_file, Directory, sqlite_database, engine, session
+from connect_db import User, Uploaded_file, Directory, sqlite_database, engine, session
 import secrets
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -97,6 +97,13 @@ def update_file(file_id:int, new_file:str, date=datetime.now()):
 
         db.commit()
 
+def get_user_directories(user_id:int):
+    with session(autoflush=False, bind=engine) as db:
+        directories = db.query(Directory).filter(Directory.user_id==user_id).all()
+    return directories
+
+
+print(len(get_user_directories(11358554)))
 
 
 
