@@ -1,7 +1,13 @@
 import os
 from pathlib import Path
 
+from modules.new_db_logic import add_directory, get_user_id
+
+
 class FolderExistException(Exception):
+    pass
+
+class FolderNotFound(Exception):
     pass
 
 class FileStorage():
@@ -22,11 +28,26 @@ class FileStorage():
             return True
         return False
 
-    def create_folder(self, name: str):
-        if name not in os.listdir(self.STORAGE_PATH):
-            os.makedirs(self.STORAGE_PATH / Path(name))
+    def create_folder(self, folder_name: str, user_name: str):
+        path = self.STORAGE_PATH / Path(user_name)
+        if folder_name not in os.listdir(path):
+            user_id = get_user_id(user_name)
+            os.makedirs(path / Path(folder_name))
+            add_directory(int(user_id), folder_name)
         else:
             raise FolderExistException
+
+    def delete_folder(self, name: str):
+        if name in os.listdir(self.STORAGE_PATH):
+            if len(os.listdir(self.STORAGE_PATH / Path(name))) == 0:
+                os.rmdir(self.STORAGE_PATH / Path(name))
+            else:
+                # TODO Warn user about data
+                pass
+        else:
+            raise FolderNotFound
+
+
 
     # def create_file(self, folder_name: str, file_name: str):
     #     if folder_name in os.listdir(self.STORAGE_PATH):
