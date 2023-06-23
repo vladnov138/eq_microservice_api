@@ -9,6 +9,7 @@ from datetime import date, datetime
 from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 
+from modules.FileStorage import FileStorage
 from modules.new_db_logic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, \
     get_files, get_dates, update_file, del_file, add_file
 
@@ -22,10 +23,11 @@ app = FastAPI()
 @app.post("/sign_up")
 async def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
     token = generate_token()
+    # TODO Fix check_user
     if check_user(user_name) > 0:
         return generate_bad_authdata_response()
     add_user(user_name, user_email, password, token)
-    os.mkdir(os.path.join(os.getcwd(), 'users_data', user_name))
+    # os.mkdir(os.path.join(os.getcwd(), 'users_data', user_name))
     return generate_success_regdata(user_name, token)
 
 
@@ -38,8 +40,13 @@ async def sign_in(user_email: EmailStr, password: str) -> dict:
 
 
 @app.post('/create_new_folder')
-def create_new_folder(token: str) -> dict:
-    pass
+def create_new_folder(token: str, name: str) -> dict:
+    user_name = search_by_token(token)
+    if user_name:
+        storage = FileStorage()
+        storage.create_folder(name)
+        return generate_success_response()
+    return generate_bad_token_response()
 
 
 @app.post('/delete_folder')
@@ -119,6 +126,8 @@ async def delete_data(token: str, data_id: int) -> dict:
 
 
 def main():
+    storage = FileStorage()
+    storage.init_storage()
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 
