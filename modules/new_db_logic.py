@@ -97,18 +97,20 @@ def update_file(file_id:int, new_file:str, date=datetime.now()):
 
         db.commit()
 
+
 def get_user_directories(user_id:int):
     with session(autoflush=False, bind=engine) as db:
         directories = db.query(Directory).filter(Directory.user_id==user_id).all()
     return directories
 
 
-print(len(get_user_directories(11358554)))
 
-
-
-
+def access_check_file(user_id:int, file_name:str):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.user_id==user_id, Uploaded_file.file==file_name).first()
+    return bool(file)
     
+
 
 
 
