@@ -299,3 +299,9 @@ pyvenv.cfg
 pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,venv
+.idea/eq_microservice_api.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/eq_microservice_api.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
