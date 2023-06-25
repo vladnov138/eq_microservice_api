@@ -1,7 +1,9 @@
 from modules.connect_db import User, Uploaded_file, Directory
 import secrets
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from datetime import datetime
+import copy
 
 
 def add_user(engine, session, email:str, nickname:str, password:str, token=secrets.token_hex(16)):
@@ -10,6 +12,10 @@ def add_user(engine, session, email:str, nickname:str, password:str, token=secre
                         password=password, token=token)
         db.add(new_user)
         db.commit()
+        new_user_id = new_user.id
+    
+    engine.dispose()
+    return copy.copy(new_user)
 
 
 def add_directory(engine, session, user_id:int, name_directory:str):
@@ -17,15 +23,18 @@ def add_directory(engine, session, user_id:int, name_directory:str):
         new_directory = Directory(user_id = user_id, name_directory = name_directory)
         db.add(new_directory)
         db.commit()
+    return copy.copy(new_directory)
 
 
-def add_file(engine, session, engine, session, user_id:int, directory_id:int, file:str, range_start:datetime, range_end:datetime, date=datetime.now()):
+def add_file(engine, session, user_id:int, directory_id:int, file:str, range_start:datetime, range_end:datetime, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
         new_file = Uploaded_file(user_id = user_id, date=date,
                         directory_id = directory_id, file = file,
                         range_start = range_start, range_end = range_end)
         db.add(new_file)
         db.commit()
+        new_file_id = new_file.id
+    return copy.copy(new_file)
 
 
 def check_user(engine, session, nickname:str):
