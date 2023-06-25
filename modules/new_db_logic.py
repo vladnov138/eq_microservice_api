@@ -22,7 +22,8 @@ def add_directory(engine, session, user_id:int, name_directory:str):
     with session(autoflush=False, bind=engine) as db:
         new_directory = Directory(user_id = user_id, name_directory = name_directory)
         db.add(new_directory)
-        db.commit()
+        db.commit()        
+        new_directory_id = new_directory.id
     engine.dispose()
     return copy.copy(new_directory)
 
