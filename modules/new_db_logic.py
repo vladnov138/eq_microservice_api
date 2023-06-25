@@ -23,6 +23,7 @@ def add_directory(engine, session, user_id:int, name_directory:str):
         new_directory = Directory(user_id = user_id, name_directory = name_directory)
         db.add(new_directory)
         db.commit()
+    engine.dispose()
     return copy.copy(new_directory)
 
 
@@ -34,6 +35,7 @@ def add_file(engine, session, user_id:int, directory_id:int, file:str, range_sta
         db.add(new_file)
         db.commit()
         new_file_id = new_file.id
+    engine.dispose()
     return copy.copy(new_file)
 
 
