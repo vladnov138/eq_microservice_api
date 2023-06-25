@@ -31,7 +31,7 @@ class Directory(Base):
     user_id = Column(Integer)
     name_directory = Column(Text)
 
-def create_bd():
+def create_bd(engine):
     Base.metadata.create_all(bind=engine)
 
 def connect(name_db='newbd.db'):
