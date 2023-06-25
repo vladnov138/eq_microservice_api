@@ -3,13 +3,7 @@ from sqlalchemy import  Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker
 
-name_db = 'newbd.db'
 
-sqlite_database = f"sqlite:///../database/{name_db}"
-
-engine = create_engine(sqlite_database)
-
-session = sessionmaker(autoflush=False, bind=engine)
 
 class Base(DeclarativeBase): pass
 
@@ -37,7 +31,11 @@ class Directory(Base):
     user_id = Column(Integer)
     name_directory = Column(Text)
 
-def create_bd():
+def create_bd(engine):
     Base.metadata.create_all(bind=engine)
 
-create_bd()
+def connect(name_db='newbd.db'):
+    sqlite_database = f"sqlite:///../database/{name_db}"
+    engine = create_engine(sqlite_database)
+    session = sessionmaker(autoflush=False, bind=engine)
+    return engine, session
