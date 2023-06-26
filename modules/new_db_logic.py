@@ -15,7 +15,7 @@ def add_user(engine, session, email:str, nickname:str, password:str, token=secre
         new_user_id = new_user.id
     
     engine.dispose()
-    return copy.copy(new_user)
+    return new_user_id
 
 
 def add_directory(engine, session, user_id:int, name_directory:str):
@@ -25,7 +25,7 @@ def add_directory(engine, session, user_id:int, name_directory:str):
         db.commit()        
         new_directory_id = new_directory.id
     engine.dispose()
-    return copy.copy(new_directory)
+    return new_directory_id
 
 
 def add_file(engine, session, user_id:int, directory_id:int, file:str, range_start:datetime, range_end:datetime, date=datetime.now()):
@@ -34,10 +34,10 @@ def add_file(engine, session, user_id:int, directory_id:int, file:str, range_sta
                         directory_id = directory_id, file = file,
                         range_start = range_start, range_end = range_end)
         db.add(new_file)
-        db.commit()
+        db.commit()     
         new_file_id = new_file.id
     engine.dispose()
-    return copy.copy(new_file)
+    return new_file_id
 
 
 def check_user(engine, session, nickname:str):
