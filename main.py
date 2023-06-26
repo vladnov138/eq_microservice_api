@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 
 from modules.FileStorage import FileStorage, FolderExistException
 from modules.connect_db import connect, create_bd
-from modules.new_db_logic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, \
+from modules.new_db_logic import check_user, add_user, authorization, search_email_by_token, search_token_by_email, get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory
 
 from modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken,  generate_success_wdata
@@ -39,17 +39,16 @@ def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
 def sign_in(user_email: EmailStr, password: str) -> dict:
     if authorization(engine, session, user_email, password) == 0:
         return generate_bad_authdata_response()
-    token = search_by_email(engine, session, user_email)
+    token = search_token_by_email(engine, session, user_email)
     return generate_success_wtoken(token)
 
 
 @app.post('/create_new_folder')
 def create_new_folder(token: str, name: str) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_nickname_by_token(engine, session, token)
     if user_name:
-        user_id = get_user_id(engine, session, user_name)
         try:
-            storage.create_folder(name, user_id)
+            storage.create_folder(name, user_name)
         except FolderExistException:
             return {'success': 'false', 'error': {'code': '420', 'description': 'The folder already exists'}}
         return generate_success_response()
@@ -58,7 +57,7 @@ def create_new_folder(token: str, name: str) -> dict:
 
 @app.post('/delete_folder')
 def delete_folder(token: str, folder_id: str) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         try:
@@ -71,7 +70,7 @@ def delete_folder(token: str, folder_id: str) -> dict:
 
 @app.post('/get_folders')
 def get_folders(token: str, limit: int) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         try:
@@ -85,7 +84,7 @@ def get_folders(token: str, limit: int) -> dict:
 
 @app.post('/rename_folder')
 def rename_folder(token: str, folder_id: str) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         try:
@@ -98,7 +97,7 @@ def rename_folder(token: str, folder_id: str) -> dict:
 
 @app.post("/upload_data")
 async def upload_data(token: str, file: UploadFile = File(...)) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         filename = file.filename
         path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
@@ -117,7 +116,7 @@ async def upload_data(token: str, file: UploadFile = File(...)) -> dict:
 
 @app.get("/get_last_data")
 async def get_last_data(token: str, limit: int = 5) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         return generate_success_wdata(get_files(user_id, limit=limit))
@@ -126,7 +125,7 @@ async def get_last_data(token: str, limit: int = 5) -> dict:
 
 @app.post("/get_data_by_date")
 async def get_data_by_date(token: str, start_date: date, finish_date: date) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         return generate_success_wdata(get_dates(user_id, start_date, finish_date))
@@ -135,7 +134,7 @@ async def get_data_by_date(token: str, start_date: date, finish_date: date) -> d
 
 @app.post("/update_data")
 async def update_data(token: str, data_id: int, file: UploadFile = File(...)) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         filename = file.filename
         path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
@@ -149,7 +148,7 @@ async def update_data(token: str, data_id: int, file: UploadFile = File(...)) ->
 
 @app.post("/delete_data")
 async def delete_data(token: str, data_id: int) -> dict:
-    user_name = search_by_token(engine, session, token)
+    user_name = search_email_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         del_file(engine, session, data_id)

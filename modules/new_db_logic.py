@@ -52,15 +52,21 @@ def authorization(engine, session, email:str, password:str):
     return bool(user)
 
 
-def search_by_token(engine, session, token:str): #get email
+def search_email_by_token(engine, session, token: str):
     with session(autoflush=False, bind=engine) as db:
-        user = db.query(User).filter(User.token==token).first()
+        user = db.query(User).filter(User.token == token).first()
     return user.email
 
 
-def search_by_email(engine, session, email:str): # get token
+def search_name_by_token(engine, session, token: str):
     with session(autoflush=False, bind=engine) as db:
-        user = db.query(User).filter(User.email==email).first()
+        user = db.query(User).filter(User.token == token).first()
+    return user.nickname
+
+
+def search_token_by_email(engine, session, email:str):
+    with session(autoflush=False, bind=engine) as db:
+        user = db.query(User).filter(User.email == email).first()
     return user.token
 
 
