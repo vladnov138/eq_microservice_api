@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from modules.connect_db import connect
-from modules.new_db_logic import add_directory, get_user_id, del_directory
+from modules.new_db_logic import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory
 
 
 class FolderExistException(Exception):
@@ -37,35 +37,35 @@ class FileStorage():
             return True
         return False
 
-    def create_folder(self, folder_name: str, user_name: str):
+    def create_folder(self, engine, session, folder_name: str, user_name: str):
         path = self.STORAGE_PATH / Path(user_name)
         if folder_name not in os.listdir(path):
-            user_id = get_user_id(user_name)
+            user_id = get_user_id(engine, session, user_name)
             os.makedirs(path / Path(folder_name))
-            con = connect()
-            add_directory(con[0], con[1], int(user_id), folder_name)
+            add_directory(engine, session, int(user_id), folder_name)
         else:
             raise FolderExistException
 
-    def delete_folder(self, user_name: str, folder_name: str):
+    def delete_folder(self, engine, session, user_name: str, folder_id: int):
         path = self.STORAGE_PATH / Path(user_name)
-        if folder_name in os.listdir(path):
-            user_id = get_user_id(user_name)
-            if len(os.listdir(path / Path(folder_name))) == 0:
-                os.rmdir(path / Path(folder_name))
+        folder = get_directory_by_id(engine, session, folder_id)
+        if folder and folder.name_directory in os.listdir(path):
+            if len(os.listdir(path / Path(folder.name))) == 0:
+                os.rmdir(path / Path(folder.name))
             else:
-                shutil.rmtree(path / Path(folder_name))
-            con = connect()
-            #TODO id
-            del_directory(con[0], con[1], folder_name)
+                shutil.rmtree(path / Path(folder.name))
+            del_directory(engine, session, folder_id)
         else:
             raise FolderNotFound
 
-    def get_folders(self):
-        pass
-
-    def update_folder_name(self):
-        pass
+    def update_folder_name(self, engine, session, user_name: str, folder_id: int, new_name: str):
+        path = self.STORAGE_PATH / Path(user_name)
+        folder = get_directory_by_id(engine, session, folder_id)
+        if folder and folder.name_directory in os.listdir(path):
+            os.rename(path / Path(folder.name_directory), path / Path(new_name))
+            update_name_directory(engine, session, folder_id, new_name)
+        else:
+            raise FolderNotFound
 
     def create_file(self, folder_name: str, file_name: str):
         if folder_name in os.listdir(self.STORAGE_PATH):

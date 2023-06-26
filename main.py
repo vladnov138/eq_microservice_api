@@ -10,12 +10,15 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
 from sqlalchemy import create_engine
 
-from modules.FileStorage import FileStorage, FolderExistException
+from modules.FileStorage import FileStorage, FolderExistException, FolderNotFound
 from modules.connect_db import connect, create_bd
-from modules.new_db_logic import check_user, add_user, authorization, search_email_by_token, search_token_by_email, get_user_id, \
-    get_files, get_dates, update_file, del_file, add_file, add_directory
+from modules.new_db_logic import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
+    get_user_id, \
+    get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
 
-from modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken,  generate_success_wdata
+from modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
+    generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken, generate_success_wdata, \
+    generate_folder_exist_error, generate_folder_not_found_error, generate_success_directories
 from modules.security import generate_token
 
 
@@ -45,25 +48,24 @@ def sign_in(user_email: EmailStr, password: str) -> dict:
 
 @app.post('/create_new_folder')
 def create_new_folder(token: str, name: str) -> dict:
-    user_name = search_nickname_by_token(engine, session, token)
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
         try:
-            storage.create_folder(name, user_name)
+            storage.create_folder(engine, session, name, user_name)
         except FolderExistException:
-            return {'success': 'false', 'error': {'code': '420', 'description': 'The folder already exists'}}
+            return generate_folder_exist_error()
         return generate_success_response()
     return generate_bad_token_response()
 
 
 @app.post('/delete_folder')
-def delete_folder(token: str, folder_id: str) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+def delete_folder(token: str, folder_id: int) -> dict:
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
-        user_id = get_user_id(engine, session, user_name)
         try:
-            storage.delete_folder(user_name, folder_id)
-        except FolderExistException:
-            return {'success': 'false', 'error': {'code': '421', 'description': 'The folder not found'}}
+            storage.delete_folder(engine, session, user_name, folder_id)
+        except FolderNotFound:
+            return generate_folder_not_found_error()
         return generate_success_response()
     return generate_bad_token_response()
 
@@ -72,25 +74,21 @@ def delete_folder(token: str, folder_id: str) -> dict:
 def get_folders(token: str, limit: int) -> dict:
     user_name = search_email_by_token(engine, session, token)
     if user_name:
+        #TODO fix the problem with returning no directories
         user_id = get_user_id(engine, session, user_name)
-        try:
-            #TODO
-            storage.get_folders()
-        except FolderExistException:
-            return {'success': 'false', 'error': {'code': '421', 'description': 'The folder already exists'}}
-        return generate_success_response()
+        directories = get_directories(engine, session, user_id)
+        return generate_success_directories(directories)
     return generate_bad_token_response()
 
 
 @app.post('/rename_folder')
-def rename_folder(token: str, folder_id: str) -> dict:
+def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
     user_name = search_email_by_token(engine, session, token)
     if user_name:
-        user_id = get_user_id(engine, session, user_name)
         try:
-            storage.update_folder_name()
+            storage.update_folder_name(engine, session, user_name, folder_id, new_name)
         except FolderExistException:
-            return {'success': 'false', 'error': {'code': '421', 'description': 'The folder not found'}}
+            return generate_folder_not_found_error()
         return generate_success_response()
     return generate_bad_token_response()
 
