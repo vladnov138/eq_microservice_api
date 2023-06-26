@@ -13,8 +13,6 @@ def add_user(engine, session, email:str, nickname:str, password:str, token=secre
         db.add(new_user)
         db.commit()
         new_user_id = new_user.id
-    
-    engine.dispose()
     return new_user_id
 
 
@@ -24,7 +22,6 @@ def add_directory(engine, session, user_id:int, name_directory:str):
         db.add(new_directory)
         db.commit()        
         new_directory_id = new_directory.id
-    engine.dispose()
     return new_directory_id
 
 
@@ -36,7 +33,6 @@ def add_file(engine, session, user_id:int, directory_id:int, file:str, range_sta
         db.add(new_file)
         db.commit()     
         new_file_id = new_file.id
-    engine.dispose()
     return new_file_id
 
 
@@ -79,6 +75,24 @@ def get_files(engine, session, user_id:int, sort_max=0, limit=10):
         with session(autoflush=False, bind=engine) as db:
             files = db.query(Uploaded_file).filter(Uploaded_file.user_id==user_id).order_by(Uploaded_file.date.desc()).limit(limit).all()
     return files
+
+
+def get_directories(engine, session, user_id:int):
+    with session(autoflush=False, bind=engine) as db:
+        directories = db.query(Directory).filter(Directory.user_id==user_id).all()
+    return directories
+
+
+def get_directory_by_name(engine, session, user_id:int, name_directory:str): #get id
+    with session(autoflush=False, bind=engine) as db:
+        directory = db.query(Directory).filter(Directory.user_id==user_id, Directory.name_directory==name_directory).first()
+    return directory.id
+
+
+def get_directory_by_id(engine, session, directory_id:int): #get directory
+    with session(autoflush=False, bind=engine) as db:
+        directory = db.query(Directory).filter(Directory.id==directory_id).first()
+    return directory
 
 
 def get_dates(engine, session, user_id:int, first_date, second_date, limit=10):
