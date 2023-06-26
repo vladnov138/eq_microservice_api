@@ -83,13 +83,13 @@ def get_files(engine, session, user_id:int, sort_max=0, limit=10):
     return files
 
 
-def get_directories(engine, session, user_id:int):
+def get_directories(engine, session, user_id: int):
     with session(autoflush=False, bind=engine) as db:
-        directories = db.query(Directory).filter(Directory.user_id==user_id).all()
+        directories = db.query(Directory).filter(Directory.user_id == user_id).all()
     return directories
 
 
-def get_directory_by_name(engine, session, user_id:int, name_directory:str): #get id
+def get_directory_id_by_name(engine, session, user_id: int, name_directory: str):
     with session(autoflush=False, bind=engine) as db:
         directory = db.query(Directory).filter(Directory.user_id==user_id, Directory.name_directory==name_directory).first()
     return directory.id
@@ -121,33 +121,23 @@ def del_file(engine, session, file_id:int):
         db.commit()
 
 
-def del_directory(engine, session, directory_id:int):
+def del_directory(engine, session, directory_id: int):
     with session(autoflush=False, bind=engine) as db:
-        directory = db.query(Directory).filter(Directory.id==directory_id).first()
+        directory = db.query(Directory).filter(Directory.id == directory_id).first()
         db.delete(directory)
         db.commit()
 
 
-def update_file(engine, session, file_id:int, new_name:str, date=datetime.now()):
+def update_file(engine, session, file_id: int, new_name: str, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
-        file = db.query(Uploaded_file).filter(Uploaded_file.id==file_id).first()
+        file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
         file.file = new_name
         file.date = date
         db.commit()
 
 
-def update_name_directory(engine, session, directory_id:int, new_name:str):
+def update_name_directory(engine, session, directory_id: int, new_name: str):
     with session(autoflush=False, bind=engine) as db:
-        directory = db.query(Directory).filter(Directory.id==directory_id).first()
+        directory = db.query(Directory).filter(Directory.id == directory_id).first()
         directory.name_directory = new_name
         db.commit()
-
-
-    
-
-
-
-
-
-
-
