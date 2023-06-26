@@ -81,9 +81,9 @@ def get_files(engine, session, user_id:int, sort_max=0, limit=10):
     return files
 
 
-def get_dates(engine, session, user_id:int, first_date, second_date):
+def get_dates(engine, session, user_id:int, first_date, second_date, limit=10):
     with session(autoflush=False, bind=engine) as db:
-        files = db.query(Uploaded_file).filter(Uploaded_file.date>=first_date, Uploaded_file.date<=second_date).all()
+        files = db.query(Uploaded_file).filter(Uploaded_file.range_start>=first_date, Uploaded_file.range_end<=second_date).all()
     return files
 
 
