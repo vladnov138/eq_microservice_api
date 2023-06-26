@@ -126,7 +126,23 @@ def test_get_files():
 
 
 def test_get_dates():
-    pass
+    token = secrets.token_hex(16)
+    user_id = int(random() * 10000)
+    directory_id = 1
+    file = 'test_file_' + token
+    range_start = datetime(2002, 10, 6, 15, 29, 43, 79060)
+    range_end = datetime(2002, 12, 6, 15, 29, 43, 79060)
+    engine, session = connect.connect(test_db)
+    new_file_id_1 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
+    token = secrets.token_hex(16)
+    file = 'test_file_' + token
+    range_start = datetime(2002, 3, 6, 15, 29, 43, 79060)
+    range_end = datetime(2002, 7, 6, 15, 29, 43, 79060)
+    date1 = datetime(2002, 1, 6, 15, 29, 43, 79060)
+    date2 = datetime(2002, 12, 20, 15, 29, 43, 79060)
+    new_file_id_2 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
+    request = logic.get_dates(engine, session, user_id, date1, date2)
+    assert len(request) == 2
 
 
 def test_del_user():
