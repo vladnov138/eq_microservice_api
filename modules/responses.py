@@ -1,8 +1,3 @@
-from modules.db_logic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, \
-    add_file, \
-    get_files, get_dates, update_file, del_file
-
-
 def generate_bad_token_response():
     """Generates JSON response for cases when user sent a wrong token"""
     return {'status': 'failed', 'error': {
