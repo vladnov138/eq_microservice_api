@@ -6,7 +6,7 @@ from datetime import datetime
 import copy
 
 
-def add_user(engine, session, email:str, nickname:str, password:str, token=secrets.token_hex(16)):
+def add_user(engine, session, nickname:str, email:str, password:str, token=secrets.token_hex(16)):
     with session(autoflush=False, bind=engine) as db:
         new_user = User(email=email, nickname=nickname,
                         password=password, token=token)
@@ -42,7 +42,7 @@ def add_file(engine, session, user_id:int, directory_id:int, file:str, range_sta
 
 def check_user(engine, session, nickname:str):
     with session(autoflush=False, bind=engine) as db:
-        user = db.query(User).filter(User.nickname==nickname).first()
+        user = db.query(User).filter(User.nickname == nickname).first()
     return bool(user)
 
 

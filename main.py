@@ -8,9 +8,10 @@ from datetime import date, datetime
 
 from fastapi import FastAPI, UploadFile, File
 from pydantic import EmailStr
+from sqlalchemy import create_engine
 
 from modules.FileStorage import FileStorage, FolderExistException
-from modules.connect_db import connect
+from modules.connect_db import connect, create_bd
 from modules.new_db_logic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory
 
@@ -25,11 +26,10 @@ engine = connection_data[0]
 session = connection_data[1]
 
 @app.post("/sign_up")
-async def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
+def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
     token = generate_token()
-    # TODO Fix check_user
-    if check_user(user_name) > 0:
-        return generate_bad_authdata_response()
+    if check_user(engine, session, user_name):
+        return generate_username_inuse_response()
     add_user(engine, session, user_name, user_email, password, token)
     storage.init_user_storage(user_name)
     return generate_success_regdata(user_name, token)
@@ -48,7 +48,6 @@ def create_new_folder(token: str, name: str) -> dict:
     user_name = search_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        storage = FileStorage()
         try:
             storage.create_folder(name, user_id)
         except FolderExistException:
@@ -62,7 +61,6 @@ def delete_folder(token: str, folder_id: str) -> dict:
     user_name = search_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        storage = FileStorage()
         try:
             storage.delete_folder(user_name, folder_id)
         except FolderExistException:
@@ -76,7 +74,6 @@ def get_folders(token: str, limit: int) -> dict:
     user_name = search_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        storage = FileStorage()
         try:
             #TODO
             storage.get_folders()
@@ -91,7 +88,6 @@ def rename_folder(token: str, folder_id: str) -> dict:
     user_name = search_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        storage = FileStorage()
         try:
             storage.update_folder_name()
         except FolderExistException:
@@ -162,8 +158,8 @@ async def delete_data(token: str, data_id: int) -> dict:
 
 
 def main():
-    storage = FileStorage()
     storage.init_storage()
+    create_bd(create_engine(f"sqlite:///../database/newdb.db"))
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 
