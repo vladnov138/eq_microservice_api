@@ -1,7 +1,9 @@
 import os
+import shutil
 from pathlib import Path
 
-from modules.new_db_logic import add_directory, get_user_id
+from modules.connect_db import connect
+from modules.new_db_logic import add_directory, get_user_id, del_directory
 
 
 class FolderExistException(Exception):
@@ -28,28 +30,54 @@ class FileStorage():
             return True
         return False
 
+    def init_user_storage(self, user_name: str) -> bool:
+        path = self.STORAGE_PATH / Path(user_name)
+        if not path.exists():
+            os.makedirs(path)
+            return True
+        return False
+
     def create_folder(self, folder_name: str, user_name: str):
         path = self.STORAGE_PATH / Path(user_name)
         if folder_name not in os.listdir(path):
             user_id = get_user_id(user_name)
             os.makedirs(path / Path(folder_name))
-            add_directory(int(user_id), folder_name)
+            con = connect()
+            add_directory(con[0], con[1], int(user_id), folder_name)
         else:
             raise FolderExistException
 
-    def delete_folder(self, name: str):
-        if name in os.listdir(self.STORAGE_PATH):
-            if len(os.listdir(self.STORAGE_PATH / Path(name))) == 0:
-                os.rmdir(self.STORAGE_PATH / Path(name))
+    def delete_folder(self, user_name: str, folder_name: str):
+        path = self.STORAGE_PATH / Path(user_name)
+        if folder_name in os.listdir(path):
+            user_id = get_user_id(user_name)
+            if len(os.listdir(path / Path(folder_name))) == 0:
+                os.rmdir(path / Path(folder_name))
             else:
-                # TODO Warn user about data
-                pass
+                shutil.rmtree(path / Path(folder_name))
+            con = connect()
+            #TODO id
+            del_directory(con[0], con[1], folder_name)
         else:
             raise FolderNotFound
 
+    def get_folders(self):
+        pass
 
+    def update_folder_name(self):
+        pass
 
-    # def create_file(self, folder_name: str, file_name: str):
-    #     if folder_name in os.listdir(self.STORAGE_PATH):
-    #         path = self.STORAGE_PATH / Path(folder_name)
-    #         if file_name not in os.listdir(path):
+    def create_file(self, folder_name: str, file_name: str):
+        if folder_name in os.listdir(self.STORAGE_PATH):
+            path = self.STORAGE_PATH / Path(folder_name)
+            if file_name not in os.listdir(path):
+                pass
+
+    def update_file(self):
+        pass
+
+    def get_files(self):
+        pass
+
+    def del_files(self):
+        pass
