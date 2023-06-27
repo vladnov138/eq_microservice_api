@@ -130,28 +130,38 @@ async def upload_data(token: str, folder_id: int, file: UploadFile = File(...)) 
 
 
 @app.get("/get_data")
-async def get_data(token: str, limit: int = 5) -> dict:
+async def get_data(token: str, folder_id: int, limit: int = 5) -> dict:
     user_name = search_name_by_token(engine, session, token)
+    logger.info(f"[Get data] Received request to get data from folder with id: {folder_id} "
+                f"for user: {user_name}")
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        return generate_success_wdata(get_files(engine, session, user_id, limit=limit))
-    logger.error(f"[Upload data] Wrong token for user: {user_name}")
+        logger.info(f"[Get data] Data were sent from folder with id: {folder_id} for user: {user_name}")
+        return generate_success_wdata(get_files(engine, session, user_id, folder_id, limit=limit))
+    logger.error(f"[Get data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
 
 
 @app.post("/get_data_by_date")
-async def get_data_by_date(token: str, start_date: date, finish_date: date) -> dict:
+async def get_data_by_date(token: str, folder_id: int, start_date: date, finish_date: date) -> dict:
     user_name = search_name_by_token(engine, session, token)
+    logger.info(f"[Get data by date] Received request to get data by date from folder with id: {folder_id} "
+                f"for user: {user_name}")
     if user_name:
         user_id = get_user_id(engine, session, user_name)
+        logger.info(f"[Get data by date] Received request to get data from folder with id: {folder_id} "
+                    f"for user: {user_name}")
         return generate_success_wdata(get_dates(engine, session, user_id, start_date, finish_date))
-    logger.error(f"[Upload data] Wrong token for user: {user_name}")
+    logger.error(f"[Get data by date] Wrong token for user: {user_name}")
     return generate_bad_token_response()
 
 
 @app.post("/update_data")
-async def update_data(token: str, data_id: int, directory_id: int, file_id: int, file: UploadFile = File(...)) -> dict:
+async def update_data(token: str, data_id: int, folder_id: int, file_id: int, new_name: str,
+                      file: UploadFile = File(...)) -> dict:
     user_name = search_email_by_token(engine, session, token)
+    logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from folder with id: {folder_id} "
+                f"for user: {user_name}")
     if user_name:
         filename = file.filename
         path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
@@ -160,17 +170,18 @@ async def update_data(token: str, data_id: int, directory_id: int, file_id: int,
         user_id = get_user_id(engine, session, user_name)
         update_file(engine, session, data_id, filename)
         return generate_success_response()
-    logger.error(f"[Upload data] Wrong token for user: {user_name}")
+    logger.error(f"[Update data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
 
 
 @app.post("/delete_data")
-async def delete_data(token: str, data_id: int) -> dict:
+async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
     user_name = search_email_by_token(engine, session, token)
+    logger.error(f"[Delete data] Received request to delete file with id: {data_id} by user: {user_name}")
     if user_name:
         del_file(engine, session, data_id)
         return generate_success_response()
-    logger.error(f"[Upload data] Wrong token for user: {user_name}")
+    logger.error(f"[Delete data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
 
 

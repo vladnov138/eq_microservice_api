@@ -93,10 +93,14 @@ def get_files(engine, session, user_id: int, directory_id: int, sort_max=0, limi
         with session(autoflush=False, bind=engine) as db:
             files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
                 Uploaded_file.date.asc()).limit(limit).all()
+            logger.info(f"[CRUD file] Get {limit} files from directory "
+                        f"with id: {directory_id} for user with id: {user_id}. Sorted by max")
     else:
         with session(autoflush=False, bind=engine) as db:
             files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
                 Uploaded_file.date.desc()).limit(limit).all()
+            logger.info(f"[CRUD file] Get {limit} files from directory "
+                        f"with id: {directory_id} for user with id: {user_id}.")
     return files
 
 
@@ -126,6 +130,8 @@ def get_dates(engine, session, user_id: int, first_date, second_date, limit=10):
     with session(autoflush=False, bind=engine) as db:
         files = db.query(Uploaded_file).filter(Uploaded_file.range_start >= first_date,
                                                Uploaded_file.range_end <= second_date).all()
+        logger.info(f"[CRUD file] Get files for user with id: {user_id} by date between {first_date} and "
+                    f"{second_date}")
     return files
 
 
@@ -156,9 +162,11 @@ def del_directory(engine, session, directory_id: int):
 def update_file(engine, session, file_id: int, new_name: str, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
+        old_name = file.file
         file.file = new_name
         file.date = date
         db.commit()
+        logger.info(f"[CRUD file] Rename file with id {file_id} from {old_name} to {new_name}")
 
 
 def update_name_directory(engine, session, directory_id: int, new_name: str):

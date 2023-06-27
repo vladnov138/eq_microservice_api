@@ -93,8 +93,11 @@ class FileStorage():
     def update_file(self):
         pass
 
-    def get_files(self):
-        pass
-
-    def del_files(self):
-        pass
+    def del_files(self, engine, session, data_id: int, folder_id: int, user_name: str):
+        user_id = get_user_id(engine, session, user_name)
+        path = self.STORAGE_PATH / Path(user_name)
+        folder = get_directory_by_id(engine, session, folder_id)
+        if folder and folder.name_directory in os.listdir(path):
+            path /= Path()
+        else:
+            raise FolderNotFound
