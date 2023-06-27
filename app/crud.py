@@ -99,7 +99,7 @@ def get_files(engine, session, user_id: int, directory_id: int, sort_max=0, limi
     return files
 
 
-def get_dates_from_file(engine, session, file_id):
+def get_file(engine, session, file_id):
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
         logger.info(f"[CRUD user] Get file id by file_id: {file_id}")
