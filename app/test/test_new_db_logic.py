@@ -86,7 +86,7 @@ def test_search_by_token():
     password = '123' + token
     engine, session = connect.connect(test_db)
     logic.add_user(engine, session, email, nickname, password, token)
-    assert logic.search_by_token(engine, session, token) == email
+    assert logic.search_email_by_token(engine, session, token) == email
 
 
 def test_search_by_email():
@@ -96,7 +96,7 @@ def test_search_by_email():
     password = '123' + token
     engine, session = connect.connect(test_db)
     logic.add_user(engine, session, email, nickname, password, token)
-    assert logic.search_by_email(engine, session, email) == token
+    assert logic.search_token_by_email(engine, session, email) == token
 
 
 def test_get_user_id():

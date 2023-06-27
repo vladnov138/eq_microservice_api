@@ -13,6 +13,8 @@ fastapi = "^0.97.0"
 pydantic = "^1.10.9"
 SQLAlchemy = "^2.0.16"
 uvicorn = "^0.22.0"
+pytest-cov = "^4.1.0"
+loguru = "^0.7.0"
 
 
 [build-system]

@@ -1,8 +1,3 @@
-from modules.db_logic import check_user, add_user, authorization, search_by_token, search_by_email, get_user_id, \
-    add_file, \
-    get_files, get_dates, update_file, del_file
-
-
 def generate_bad_token_response():
     """Generates JSON response for cases when user sent a wrong token"""
     return {'status': 'failed', 'error': {
@@ -30,6 +25,21 @@ def generate_bad_authdata_response():
         'code': 411,
         'description': 'Email or password is wrong'
     }}
+
+
+def generate_folder_exist_error():
+    """Returns data for cases when folder exists"""
+    return {'success': 'false', 'error': {'code': 420, 'description': 'The folder already exists'}}
+
+
+def generate_folder_not_found_error():
+    """Returns data for cases when folder not found"""
+    return {'success': 'false', 'error': {'code': 421, 'description': 'The folder not found'}}
+
+
+def generate_success_directories(directories: list):
+    """Generates response for reading directories"""
+    return {'status': 'success', 'error': None, 'directories': directories}
 
 
 def generate_success_regdata(name: str, token: str) -> dict:
