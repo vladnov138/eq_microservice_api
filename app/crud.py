@@ -1,5 +1,4 @@
 from loguru import logger
-
 from models import User, Uploaded_file, Directory
 import secrets
 from datetime import datetime
@@ -102,6 +101,13 @@ def get_files(engine, session, user_id: int, directory_id: int, sort_max=0, limi
             logger.info(f"[CRUD file] Get {limit} files from directory "
                         f"with id: {directory_id} for user with id: {user_id}.")
     return files
+
+
+def get_dates_from_file(engine, session, file_id):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
+        logger.info(f"[CRUD user] Get file id by file_id: {file_id}")
+    return file
 
 
 def get_directories(engine, session, user_id: int):
