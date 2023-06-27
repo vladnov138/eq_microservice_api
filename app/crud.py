@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime
 
 
-def add_user(engine, session, nickname:str, email:str, password:str, token=secrets.token_hex(16)):
+def add_user(engine, session, nickname: str, email: str, password: str, token=secrets.token_hex(16)):
     with session(autoflush=False, bind=engine) as db:
         new_user = User(email=email, nickname=nickname,
                         password=password, token=token)
@@ -16,11 +16,11 @@ def add_user(engine, session, nickname:str, email:str, password:str, token=secre
     return new_user_id
 
 
-def add_directory(engine, session, user_id:int, name_directory:str):
+def add_directory(engine, session, user_id: int, name_directory: str):
     with session(autoflush=False, bind=engine) as db:
-        new_directory = Directory(user_id = user_id, name_directory = name_directory)
+        new_directory = Directory(user_id=user_id, name_directory=name_directory)
         db.add(new_directory)
-        db.commit()        
+        db.commit()
         new_directory_id = new_directory.id
         logger.info(f"[CRUD directory] New directory for user with id: {user_id} was created")
     return new_directory_id
@@ -30,17 +30,17 @@ def add_file(engine, session, user_id: int, directory_id: int, file: str,
              range_start: datetime, range_end: datetime, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
         new_file = Uploaded_file(user_id=user_id, date=date,
-                        directory_id=directory_id, file=file,
-                        range_start=range_start, range_end=range_end)
+                                 directory_id=directory_id, file=file,
+                                 range_start=range_start, range_end=range_end)
         db.add(new_file)
-        db.commit()     
+        db.commit()
         new_file_id = new_file.id
         logger.info(f"[CRUD file] Add new file: {file} to directory with id: {directory_id} by "
                     f"user with id {user_id}")
     return new_file_id
 
 
-def check_user(engine, session, nickname:str):
+def check_user(engine, session, nickname: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.nickname == nickname).first()
     if user:
@@ -88,13 +88,15 @@ def get_user_id(engine, session, nickname: str):
     return user.id
 
 
-def get_files(engine, session, user_id: int, sort_max=0, limit=10):
+def get_files(engine, session, user_id: int, directory_id: int, sort_max=0, limit=10):
     if sort_max:
         with session(autoflush=False, bind=engine) as db:
-            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id).order_by(Uploaded_file.date.asc()).limit(limit).all()
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
+                Uploaded_file.date.asc()).limit(limit).all()
     else:
         with session(autoflush=False, bind=engine) as db:
-            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id).order_by(Uploaded_file.date.desc()).limit(limit).all()
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
+                Uploaded_file.date.desc()).limit(limit).all()
     return files
 
 
@@ -107,7 +109,8 @@ def get_directories(engine, session, user_id: int):
 
 def get_directory_id_by_name(engine, session, user_id: int, name_directory: str):
     with session(autoflush=False, bind=engine) as db:
-        directory = db.query(Directory).filter(Directory.user_id == user_id, Directory.name_directory == name_directory).first()
+        directory = db.query(Directory).filter(Directory.user_id == user_id,
+                                               Directory.name_directory == name_directory).first()
         logger.info(f"[CRUD directory] User with id: {user_id} get directory id by name {name_directory}")
     return directory.id
 
@@ -156,7 +159,6 @@ def update_file(engine, session, file_id: int, new_name: str, date=datetime.now(
         file.file = new_name
         file.date = date
         db.commit()
-
 
 
 def update_name_directory(engine, session, directory_id: int, new_name: str):
