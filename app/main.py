@@ -8,9 +8,9 @@ from loguru import logger
 from pydantic import EmailStr
 from sqlalchemy import create_engine
 
-from modules.FileStorage import FileStorage, FolderExistException, FolderNotFound
-from modules.connect_db import connect, create_bd
-from modules.new_db_logic import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
+from modules.file_storage import FileStorage, FolderExistException, FolderNotFound
+from database import connect, create_bd
+from crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
 
@@ -176,7 +176,7 @@ async def delete_data(token: str, data_id: int) -> dict:
 
 def main():
     storage.init_storage()
-    create_bd(create_engine(f"sqlite:///../database/newdb.db"))
+    create_bd(create_engine(f"sqlite:///database/newdb.db"))
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 

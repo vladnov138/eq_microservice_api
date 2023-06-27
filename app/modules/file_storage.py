@@ -6,8 +6,7 @@ from pathlib import Path
 import h5py
 from fastapi import UploadFile
 
-from modules.connect_db import connect
-from modules.new_db_logic import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
+from app.crud import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
     add_file
 
 

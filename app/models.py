@@ -1,10 +1,9 @@
-from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import sessionmaker
 
 
-class Base(DeclarativeBase): pass
+class Base(DeclarativeBase):
+    pass
 
 
 class User(Base):
@@ -32,14 +31,3 @@ class Directory(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer)
     name_directory = Column(Text)
-
-
-def create_bd(engine):
-    Base.metadata.create_all(bind=engine)
-
-
-def connect(name_db='newbd.db'):
-    sqlite_database = f"sqlite:///../database/{name_db}"
-    engine = create_engine(sqlite_database)
-    session = sessionmaker(autoflush=False, bind=engine)
-    return engine, session

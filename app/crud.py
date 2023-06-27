@@ -1,6 +1,6 @@
 from loguru import logger
 
-from modules.connect_db import User, Uploaded_file, Directory
+from models import User, Uploaded_file, Directory
 import secrets
 from datetime import datetime
 
