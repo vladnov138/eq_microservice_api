@@ -149,7 +149,8 @@ async def get_data_by_date(token: str, folder_id: int, start_date: date, finish_
                 f"for user: {user_name}")
     if user_name:
         user_id = get_user_id(engine, session, user_name)
-        logger.info(f"[Get data by date] Received request to get data from folder with id: {folder_id} "
+        logger.info(f"[Get data by date] Returned data by date between {start_date} and {finish_date} "
+                    f"from folder with id: {folder_id} "
                     f"for user: {user_name}")
         return generate_success_wdata(get_dates(engine, session, user_id, start_date, finish_date))
     logger.error(f"[Get data by date] Wrong token for user: {user_name}")
@@ -160,7 +161,8 @@ async def get_data_by_date(token: str, folder_id: int, start_date: date, finish_
 async def update_data(token: str, data_id: int, folder_id: int, file_id: int, new_name: str,
                       file: UploadFile = File(...)) -> dict:
     user_name = search_email_by_token(engine, session, token)
-    logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from folder with id: {folder_id} "
+    logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from "
+                f"folder with id: {folder_id} "
                 f"for user: {user_name}")
     if user_name:
         filename = file.filename
@@ -177,9 +179,15 @@ async def update_data(token: str, data_id: int, folder_id: int, file_id: int, ne
 @app.post("/delete_data")
 async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
     user_name = search_email_by_token(engine, session, token)
-    logger.error(f"[Delete data] Received request to delete file with id: {data_id} by user: {user_name}")
+    logger.info(f"[Delete data] Received request to delete file with id: {data_id} by user: {user_name}")
     if user_name:
-        del_file(engine, session, data_id)
+        try:
+            del_file(engine, session, data_id)
+        except FolderNotFound:
+            logger.error(f"[Delete data] Folder with id {folder_id} not found")
+        except FileNotFoundError:
+            logger.error(f"[Delete data] File with id {data_id} not found")
+        logger.info(f"[Delete data] File with id {data_id} was successfully deleted")
         return generate_success_response()
     logger.error(f"[Delete data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
