@@ -1,6 +1,4 @@
 import os
-import secrets
-import string
 
 import h5py
 import uvicorn
@@ -72,9 +70,8 @@ def delete_folder(token: str, folder_id: int) -> dict:
 
 @app.post('/get_folders')
 def get_folders(token: str, limit: int) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
-        #TODO fix the problem with returning no directories
         user_id = get_user_id(engine, session, user_name)
         directories = get_directories(engine, session, user_id)
         return generate_success_directories(directories)

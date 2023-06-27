@@ -42,7 +42,8 @@ class FileStorage():
         if folder_name not in os.listdir(path):
             user_id = get_user_id(engine, session, user_name)
             os.makedirs(path / Path(folder_name))
-            add_directory(engine, session, int(user_id), folder_name)
+            res = add_directory(engine, session, int(user_id), folder_name)
+            print(res)
         else:
             raise FolderExistException
 
