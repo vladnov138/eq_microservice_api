@@ -1,9 +1,14 @@
 import os
 import shutil
+from datetime import datetime
 from pathlib import Path
 
+import h5py
+from fastapi import UploadFile
+
 from modules.connect_db import connect
-from modules.new_db_logic import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory
+from modules.new_db_logic import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
+    add_file
 
 
 class FolderExistException(Exception):
@@ -51,10 +56,11 @@ class FileStorage():
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
-            if len(os.listdir(path / Path(folder.name))) == 0:
-                os.rmdir(path / Path(folder.name))
+            folder_name = folder.name_directory
+            if len(os.listdir(path / Path(folder_name))) == 0:
+                os.rmdir(path / Path(folder_name))
             else:
-                shutil.rmtree(path / Path(folder.name))
+                shutil.rmtree(path / Path(folder_name))
             del_directory(engine, session, folder_id)
         else:
             raise FolderNotFound
@@ -68,11 +74,22 @@ class FileStorage():
         else:
             raise FolderNotFound
 
-    def create_file(self, folder_name: str, file_name: str):
-        if folder_name in os.listdir(self.STORAGE_PATH):
-            path = self.STORAGE_PATH / Path(folder_name)
-            if file_name not in os.listdir(path):
-                pass
+    async def create_file(self, engine, session, user_name: str, folder_id: int, file: UploadFile):
+        user_id = get_user_id(engine, session, user_name)
+        path = self.STORAGE_PATH / Path(user_name)
+        folder = get_directory_by_id(engine, session, folder_id)
+        if folder and folder.name_directory in os.listdir(path):
+            path /= Path(file.filename)
+            with open(path, "wb") as f:
+                f.write(await file.read())
+            with h5py.File(path, "r") as f:
+                date_objects = [datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f") for date_str
+                                in list(f['data'].keys())]
+            min_date = min(date_objects)
+            max_date = max(date_objects)
+            add_file(engine, session, user_id, file.filename, min_date, max_date)
+        else:
+            raise FolderNotFound
 
     def update_file(self):
         pass

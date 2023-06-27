@@ -1,9 +1,6 @@
 from modules.connect_db import User, Uploaded_file, Directory
 import secrets
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
 from datetime import datetime
-import copy
 
 
 def add_user(engine, session, nickname:str, email:str, password:str, token=secrets.token_hex(16)):
@@ -60,15 +57,15 @@ def search_name_by_token(engine, session, token: str):
     return user.nickname
 
 
-def search_token_by_email(engine, session, email:str):
+def search_token_by_email(engine, session, email: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.email == email).first()
     return user.token
 
 
-def get_user_id(engine, session, nickname:str):
+def get_user_id(engine, session, nickname: str):
     with session(autoflush=False, bind=engine) as db:
-        user = db.query(User).filter(User.nickname==nickname).first()
+        user = db.query(User).filter(User.nickname == nickname).first()
     return user.id
 
 

@@ -1,6 +1,5 @@
 import os
 
-import h5py
 import uvicorn
 from datetime import date, datetime
 
@@ -80,7 +79,7 @@ def get_folders(token: str, limit: int) -> dict:
 
 @app.post('/rename_folder')
 def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
         try:
             storage.update_folder_name(engine, session, user_name, folder_id, new_name)
@@ -91,20 +90,13 @@ def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
 
 
 @app.post("/upload_data")
-async def upload_data(token: str, file: UploadFile = File(...)) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+async def upload_data(token: str, folder_id: int, file: UploadFile = File(...)) -> dict:
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
-        filename = file.filename
-        path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
-        with open(path, "wb") as f:
-            f.write(await file.read())
-        with h5py.File(path, "r") as f:
-            date_objects = [datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f") for date_str
-                            in list(f['data'].keys())]
-        min_date = min(date_objects)
-        max_date = max(date_objects)
-        user_id = get_user_id(engine, session, user_name)
-        add_file(engine, session, user_id, filename, min_date, max_date)
+        try:
+            await storage.create_file(engine, session, user_name, folder_id, file)
+        except FolderNotFound:
+            return generate_folder_not_found_error()
         return generate_success_response()
     return generate_bad_token_response()
 
@@ -120,7 +112,7 @@ async def get_last_data(token: str, limit: int = 5) -> dict:
 
 @app.post("/get_data_by_date")
 async def get_data_by_date(token: str, start_date: date, finish_date: date) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+    user_name = search_name_by_token(engine, session, token)
     if user_name:
         user_id = get_user_id(engine, session, user_name)
         return generate_success_wdata(get_dates(user_id, start_date, finish_date))
