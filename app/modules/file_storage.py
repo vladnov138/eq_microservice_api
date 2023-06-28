@@ -1,20 +1,29 @@
 import os
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import h5py
 from fastapi import UploadFile
 
-from app.crud import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
-    add_file
+sys.path.insert(1, '..')
+
+from crud import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
+    add_file, get_file, del_file
 
 
 class FolderExistException(Exception):
     pass
 
+
 class FolderNotFound(Exception):
     pass
+
+
+class FileNotFound(Exception):
+    pass
+
 
 class FileStorage():
     __instance = None
@@ -93,8 +102,17 @@ class FileStorage():
     def update_file(self):
         pass
 
-    def get_files(self):
-        pass
-
-    def del_files(self):
-        pass
+    def del_files(self, engine, session, data_id: int, folder_id: int, user_name: str):
+        user_id = get_user_id(engine, session, user_name)
+        path = self.STORAGE_PATH / Path(user_name)
+        folder = get_directory_by_id(engine, session, folder_id)
+        if folder and folder.name_directory in os.listdir(path):
+            file = get_file(engine, session, data_id)
+            if file:
+                path /= Path(file.filename)
+                os.remove(path)
+                del_file(engine, session, data_id)
+            else:
+                raise FileNotFound
+        else:
+            raise FolderNotFound
