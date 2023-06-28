@@ -195,7 +195,8 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
 
 def main():
     storage.init_storage()
-    create_bd(create_engine(f"sqlite:///database/newdb.db"))
+    engine, session = connect()
+    create_bd(engine)
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 

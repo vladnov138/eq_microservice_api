@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base
+from models import Base
 
 
 def create_bd(engine):
@@ -15,5 +15,5 @@ def connect(name_db='main.db'):
     return engine, session
 
 
-def clean_db(engine):  # delete all tables
+def clean_db(engine):
     Base.metadata.drop_all(engine)

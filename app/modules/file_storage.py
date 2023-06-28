@@ -1,12 +1,15 @@
 import os
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import h5py
 from fastapi import UploadFile
 
-from app.crud import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
+sys.path.insert(1, '..')
+
+from crud import add_directory, get_user_id, del_directory, get_directory_by_id, update_name_directory, \
     add_file, get_file, del_file
 
 
