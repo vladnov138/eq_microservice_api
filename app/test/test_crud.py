@@ -1,16 +1,17 @@
 from random import random
-
 import app.crud as logic
 import app.database as connect
-from app.models import User, Uploaded_file, Directory
 from datetime import datetime
+import app.main
 import secrets
+from app.models import User, Uploaded_file, Directory
+
 
 test_db = 'test.db'
 
 
-def del_user():
-    pass
+def test_del_user():
+    assert True
 
 
 def test_add_user():
@@ -20,7 +21,9 @@ def test_add_user():
     password = '123' + token
     engine, session = connect.connect(test_db, '/..')
     connect.create_bd(engine)
-    new_user_id = logic.add_user(engine, session, nickname, email, password, token)
+    assert logic.add_user(engine, session, nickname, email, password, token) == 1
+    new_user_id = 1
+
     with session(autoflush=False, bind=engine) as db:
         users = db.query(User).filter(User.email == email,
                                       User.nickname == nickname,

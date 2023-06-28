@@ -8,16 +8,16 @@ from loguru import logger
 from pydantic import EmailStr
 from sqlalchemy import create_engine
 
-from modules.file_storage import FileStorage, FolderExistException, FolderNotFound
+from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound
 from database import connect, create_bd
 from crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
 
-from modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
+from app.modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
     generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken, generate_success_wdata, \
     generate_folder_exist_error, generate_folder_not_found_error, generate_success_directories
-from modules.security import generate_token
+from app.modules.security import generate_token
 
 
 app = FastAPI()
