@@ -9,8 +9,8 @@ from pydantic import EmailStr
 from sqlalchemy import create_engine
 
 from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound
-from database import connect, create_bd
-from crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
+from app.database import connect, create_bd
+from app.crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
 
