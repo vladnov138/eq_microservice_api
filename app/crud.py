@@ -1,5 +1,5 @@
 from loguru import logger
-from models import User, Uploaded_file, Directory
+from app.models import User, Uploaded_file, Directory
 import secrets
 from datetime import datetime
 
@@ -90,13 +90,15 @@ def get_user_id(engine, session, nickname: str):
 def get_files(engine, session, user_id: int, directory_id: int, sort_max=0, limit=10):
     if sort_max:
         with session(autoflush=False, bind=engine) as db:
-            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
+                                                   Uploaded_file.directory_id == directory_id).order_by(
                 Uploaded_file.date.asc()).limit(limit).all()
             logger.info(f"[CRUD file] Get {limit} files from directory "
                         f"with id: {directory_id} for user with id: {user_id}. Sorted by max")
     else:
         with session(autoflush=False, bind=engine) as db:
-            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id, Uploaded_file.directory_id == directory_id).order_by(
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
+                                                   Uploaded_file.directory_id == directory_id).order_by(
                 Uploaded_file.date.desc()).limit(limit).all()
             logger.info(f"[CRUD file] Get {limit} files from directory "
                         f"with id: {directory_id} for user with id: {user_id}.")
@@ -134,8 +136,9 @@ def get_directory_by_id(engine, session, directory_id: int):
 
 def get_dates(engine, session, user_id: int, first_date, second_date, limit=10):
     with session(autoflush=False, bind=engine) as db:
-        files = db.query(Uploaded_file).filter(Uploaded_file.range_start >= first_date,
-                                               Uploaded_file.range_end <= second_date).all()
+        files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
+                                               Uploaded_file.range_start >= first_date,
+                                               Uploaded_file.range_end <= second_date).limit(limit).all()
         logger.info(f"[CRUD file] Get files for user with id: {user_id} by date between {first_date} and "
                     f"{second_date}")
     return files
