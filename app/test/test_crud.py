@@ -7,6 +7,7 @@ from datetime import datetime
 import secrets
 
 test_db = 'test.db'
+way = '/..'
 
 
 def test_add_user():
@@ -14,7 +15,7 @@ def test_add_user():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_user_id = logic.add_user(engine, session, nickname, email, password, token)
     with session(autoflush=False, bind=engine) as db:
@@ -30,7 +31,7 @@ def test_add_directory():
     token = secrets.token_hex(16)
     user_id = 1
     name_directory = 'test_directory_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, name_directory)
     with session(autoflush=False, bind=engine) as db:
@@ -48,7 +49,7 @@ def test_add_file():
     file = 'test_file_' + token
     range_start = datetime.now()
     range_end = datetime.now()
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     with session(autoflush=False, bind=engine) as db:
@@ -67,7 +68,7 @@ def test_check_user():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     answer = logic.check_user(engine, session, nickname) == 1
@@ -80,7 +81,7 @@ def test_authorization():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     assert logic.authorization(engine, session, email, password) == 1
@@ -95,7 +96,7 @@ def test_search_email_by_token():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     answer = logic.search_email_by_token(engine, session, token) == email
@@ -108,7 +109,7 @@ def test_search_name_by_token():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     answer = logic.search_name_by_token(engine, session, token) == nickname
@@ -121,7 +122,7 @@ def test_search_token_by_email():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     answer = logic.search_token_by_email(engine, session, email) == token
@@ -134,7 +135,7 @@ def test_get_user_id():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     user_id = logic.add_user(engine, session, nickname, email, password, token)
     assert logic.get_user_id(engine, session, nickname) == user_id
@@ -148,7 +149,7 @@ def test_get_files():
     file = 'test_file_' + token
     range_start = datetime.now()
     range_end = datetime.now()
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id_1 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     new_file_id_2 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
@@ -166,7 +167,7 @@ def test_get_file():
     file = 'test_file_' + token
     range_start = datetime.now()
     range_end = datetime.now()
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     new_file = logic.get_file(engine, session, new_file_id)
@@ -179,7 +180,7 @@ def test_get_directories():
     user_id = int(random() * 10000)
     directory_name_1 = 'test_directory1_' + token
     directory_name_2 = 'test_directory2_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id_1 = logic.add_directory(engine, session, user_id, directory_name_1)
     new_directory_id_2 = logic.add_directory(engine, session, user_id, directory_name_2)
@@ -193,7 +194,7 @@ def test_get_directory_id_by_name():
     token = secrets.token_hex(16)
     user_id = int(random() * 10000)
     directory_name = 'test_directory_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, directory_name)
     directory_id = logic.get_directory_id_by_name(engine, session, user_id, directory_name)
@@ -205,7 +206,7 @@ def test_get_directory_by_id():
     token = secrets.token_hex(16)
     user_id = int(random() * 10000)
     directory_name = 'test_directory_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, directory_name)
     directory = logic.get_directory_by_id(engine, session, new_directory_id)
@@ -221,7 +222,7 @@ def test_get_dates():
     file = 'test_file_' + token
     range_start = datetime(2002, 10, 6, 15, 29, 43, 79060)
     range_end = datetime(2002, 12, 6, 15, 29, 43, 79060)
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id_1 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     token = secrets.token_hex(16)
@@ -241,7 +242,7 @@ def test_del_user():
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
     password = '123' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
     logic.del_user(engine, session, nickname)
@@ -256,7 +257,7 @@ def test_del_file():
     file = 'test_file_' + token
     range_start = datetime.now()
     range_end = datetime.now()
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     logic.del_file(engine, session, new_file_id)
@@ -270,7 +271,7 @@ def test_del_directory():
     token = secrets.token_hex(16)
     user_id = int(random() * 10000)
     directory_name = 'test_directory_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, directory_name)
     logic.del_directory(engine, session, new_directory_id)
@@ -286,7 +287,7 @@ def test_update_file():
     file = 'test_file_' + token
     range_start = datetime.now()
     range_end = datetime.now()
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     new_name_file = token
@@ -305,7 +306,7 @@ def test_update_steep_file():
     range_start = datetime.now()
     range_end = datetime.now()
     steep = int(random() * 10000)
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end,
                                  steep=steep)
@@ -324,7 +325,7 @@ def test_update_description_file():
     range_start = datetime.now()
     range_end = datetime.now()
     description = 'test_description_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end,
                                  description=description)
@@ -339,7 +340,7 @@ def test_update_name_directory():
     token = secrets.token_hex(16)
     user_id = int(random() * 10000)
     directory_name = 'test_directory_' + token
-    engine, session = connect.connect(test_db, '/..')
+    engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, directory_name)
     new_name = 'new_name'
