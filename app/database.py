@@ -3,7 +3,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from models import Base
+from app.models import Base
 
 
 def create_bd(engine):  # create all tables
