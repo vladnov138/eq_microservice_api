@@ -109,7 +109,10 @@ class TestApp():
                               search_name_by_token(engine, session, token))
         params = {'token': token,
                   'folder_id': folder_id}
-        with open('./app/test/dtec_2_10_01_17.h5', 'rb') as file:
+        src = './app/test/dtec_2_10_01_17.h5'
+        if 'test' in os.getcwd():
+            src = './dtec_2_10_01_17.h5'
+        with open(src, 'rb') as file:
             upload_file = {'file': file}
             response = self.client.post('/upload_data', params=params, files=upload_file)
             assert response.status_code == 200
@@ -134,6 +137,7 @@ class TestApp():
         #           'folder_id': folder_id
         #           'start_date': ,
         #           'finish_date': }
+        # TODO
 
     def test_delete_data(self):
         token = self.get_token()

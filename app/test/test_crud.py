@@ -1,3 +1,4 @@
+import os
 from random import random
 
 import app.crud as logic
@@ -7,10 +8,13 @@ from datetime import datetime
 import secrets
 
 test_db = 'test.db'
+# way = '/..' if 'app' in os.getcwd() else ''
 way = '/..'
+# print('WAY ', way, ' ', 'app' in os.getcwd())
 
 
 def test_add_user():
+    global way
     token = secrets.token_hex(16)
     email = 'test' + token + '@mail.ru'
     nickname = 'test_user_' + token
