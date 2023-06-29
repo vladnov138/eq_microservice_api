@@ -193,7 +193,7 @@ def update_description_file(engine, session, file_id: int, new_description: str,
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
         old_description = file.description
-        file.steep = new_description
+        file.description = new_description
         file.date = date
         db.commit()
         logger.info(f"[CRUD file] Update description file with id {file_id} from {old_description} to {new_description}")
