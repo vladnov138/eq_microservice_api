@@ -26,11 +26,12 @@ def add_directory(engine, session, user_id: int, name_directory: str):
 
 
 def add_file(engine, session, user_id: int, directory_id: int, file: str,
-             range_start: datetime, range_end: datetime, date=datetime.now()):
+             range_start: datetime, range_end: datetime, date=datetime.now(), steep=1, description=''):
     with session(autoflush=False, bind=engine) as db:
         new_file = Uploaded_file(user_id=user_id, date=date,
                                  directory_id=directory_id, file=file,
-                                 range_start=range_start, range_end=range_end)
+                                 range_start=range_start, range_end=range_end,
+                                 steep=steep, description=description)
         db.add(new_file)
         db.commit()
         new_file_id = new_file.id
@@ -176,6 +177,26 @@ def update_file(engine, session, file_id: int, new_name: str, date=datetime.now(
         file.date = date
         db.commit()
         logger.info(f"[CRUD file] Rename file with id {file_id} from {old_name} to {new_name}")
+
+
+def update_steep_file(engine, session, file_id: int, new_steep: int, date=datetime.now()):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
+        old_steep = file.file
+        file.steep = new_steep
+        file.date = date
+        db.commit()
+        logger.info(f"[CRUD file] Update steep file with id {file_id} from {old_steep} to {new_steep}")
+
+
+def update_description_file(engine, session, file_id: int, new_description: str, date=datetime.now()):
+    with session(autoflush=False, bind=engine) as db:
+        file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
+        old_description = file.description
+        file.steep = new_description
+        file.date = date
+        db.commit()
+        logger.info(f"[CRUD file] Update description file with id {file_id} from {old_description} to {new_description}")
 
 
 def update_name_directory(engine, session, directory_id: int, new_name: str):
