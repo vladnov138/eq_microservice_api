@@ -1,4 +1,5 @@
 import os
+import sys
 
 import uvicorn
 from datetime import date, datetime
@@ -7,8 +8,9 @@ from fastapi import FastAPI, UploadFile, File
 from loguru import logger
 from pydantic import EmailStr
 from sqlalchemy import create_engine
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from modules.file_storage import FileStorage, FolderExistException, FolderNotFound
+from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound
 from database import connect, create_bd
 from crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
@@ -22,9 +24,9 @@ from modules.security import generate_token
 
 app = FastAPI()
 storage = FileStorage()
-connection_data = connect()
-engine = connection_data[0]
-session = connection_data[1]
+# connection_data = connect()
+engine = None
+session = None
 
 
 @app.post("/sign_up")
