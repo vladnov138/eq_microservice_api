@@ -10,24 +10,24 @@ from pydantic import EmailStr
 from sqlalchemy import create_engine
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound
-from database import connect, create_bd
-from crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
+from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound, FileNotFound
+from app.database import connect, create_bd
+from app.crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
     get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
 
-from modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
+from app.modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
     generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken, generate_success_wdata, \
-    generate_folder_exist_error, generate_folder_not_found_error, generate_success_directories
-from modules.security import generate_token
+    generate_folder_exist_error, generate_folder_not_found_error, generate_success_directories, \
+    generate_file_not_found_error
+from app.modules.security import generate_token
 
 
 app = FastAPI()
 storage = FileStorage()
-# connection_data = connect()
-engine = None
-session = None
-
+storage.init_storage()
+engine, session = connect()
+create_bd(engine)
 
 @app.post("/sign_up")
 def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
@@ -67,7 +67,7 @@ def create_new_folder(token: str, name: str) -> dict:
     return generate_bad_token_response()
 
 
-@app.post('/delete_folder')
+@app.delete('/delete_folder')
 def delete_folder(token: str, folder_id: int) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Delete folder] Received request to delete folder with id: {folder_id} for user: {user_name}")
@@ -96,7 +96,7 @@ def get_folders(token: str, limit: int) -> dict:
     return generate_bad_token_response()
 
 
-@app.post('/rename_folder')
+@app.put('/rename_folder')
 def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Rename folder] Received request to rename folder with id: {folder_id} to {new_name} "
@@ -114,7 +114,7 @@ def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
 
 
 @app.post("/upload_data")
-async def upload_data(token: str, folder_id: int, file: UploadFile = File(...)) -> dict:
+async def upload_data(token: str, folder_id: int, file: UploadFile) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Upload data] Received request to upload data to folder with id: {folder_id} "
                 f"for user: {user_name}")
@@ -131,7 +131,7 @@ async def upload_data(token: str, folder_id: int, file: UploadFile = File(...)) 
     return generate_bad_token_response()
 
 
-@app.get("/get_data")
+@app.post("/get_data")
 async def get_data(token: str, folder_id: int, limit: int = 5) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Get data] Received request to get data from folder with id: {folder_id} "
@@ -145,7 +145,7 @@ async def get_data(token: str, folder_id: int, limit: int = 5) -> dict:
 
 
 @app.post("/get_data_by_date")
-async def get_data_by_date(token: str, folder_id: int, start_date: date, finish_date: date) -> dict:
+async def get_data_by_date(token: str, folder_id: int, start_date: datetime, finish_date: datetime) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Get data by date] Received request to get data by date from folder with id: {folder_id} "
                 f"for user: {user_name}")
@@ -161,7 +161,7 @@ async def get_data_by_date(token: str, folder_id: int, start_date: date, finish_
 
 @app.post("/update_data")
 async def update_data(token: str, data_id: int, folder_id: int, file_id: int, new_name: str,
-                      file: UploadFile = File(...)) -> dict:
+                      file: UploadFile) -> dict:
     user_name = search_email_by_token(engine, session, token)
     logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from "
                 f"folder with id: {folder_id} "
@@ -178,17 +178,20 @@ async def update_data(token: str, data_id: int, folder_id: int, file_id: int, ne
     return generate_bad_token_response()
 
 
-@app.post("/delete_data")
+@app.delete("/delete_data")
 async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
-    user_name = search_email_by_token(engine, session, token)
+    user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Delete data] Received request to delete file with id: {data_id} by user: {user_name}")
     if user_name:
         try:
-            del_file(engine, session, data_id)
+            # del_file(engine, session, data_id)
+            storage.del_files(engine, session, data_id, folder_id, user_name)
         except FolderNotFound:
             logger.error(f"[Delete data] Folder with id {folder_id} not found")
-        except FileNotFoundError:
+            return generate_folder_not_found_error()
+        except FileNotFound:
             logger.error(f"[Delete data] File with id {data_id} not found")
+            return generate_file_not_found_error()
         logger.info(f"[Delete data] File with id {data_id} was successfully deleted")
         return generate_success_response()
     logger.error(f"[Delete data] Wrong token for user: {user_name}")
@@ -196,9 +199,6 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
 
 
 def main():
-    storage.init_storage()
-    engine, session = connect()
-    create_bd(engine)
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 
