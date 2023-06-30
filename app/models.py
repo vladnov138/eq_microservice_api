@@ -24,7 +24,6 @@ class Uploaded_file(Base):
     file = Column(Text)
     range_start = Column(DateTime)
     range_end = Column(DateTime)
-    steep = Column(Integer)
     description = Column(Text)
 
 
