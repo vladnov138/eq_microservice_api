@@ -72,9 +72,9 @@ def search_email_by_token(engine, session, token: str):
 def search_name_by_token(engine, session, token: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.token == token).first()
-        logger.info(f"[Search name] Get user's name for user: {user.nickname} by token")
     if not bool(user):
         return None
+    logger.info(f"[Search name] Get user's name for user: {user.nickname} by token")
     return user.nickname
 
 
