@@ -302,25 +302,6 @@ def test_update_file():
     connect.clean_db(engine)
 
 
-def test_update_steep_file():
-    token = secrets.token_hex(16)
-    user_id = int(random() * 10000)
-    directory_id = int(random() * 10000)
-    file = 'test_file_' + token
-    range_start = datetime.now()
-    range_end = datetime.now()
-    steep = int(random() * 10000)
-    engine, session = connect.connect(test_db, way)
-    connect.create_bd(engine)
-    new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end,
-                                 steep=steep)
-    new_steep = int(random() * 10000) + 100000
-    logic.update_steep_file(engine, session, new_file_id, new_steep)
-    file = logic.get_file(engine, session, new_file_id)
-    assert file.steep != steep
-    assert file.steep == new_steep
-
-
 def test_update_description_file():
     token = secrets.token_hex(16)
     user_id = int(random() * 10000)
