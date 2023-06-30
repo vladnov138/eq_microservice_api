@@ -28,7 +28,7 @@ class FileNotFound(Exception):
 class FileStorage():
     __instance = None
 
-    STORAGE_PATH = Path(os.getcwd()) / Path('users_data')
+    STORAGE_PATH = Path(os.getcwd()) / Path('users_data') if 'app' not in os.getcwd() else Path(os.getcwd()) / Path('app')
     CLEAN_AFTER_SECONDS = 24 * 3600 * 10
     TOKEN_LENGTH = 16
 
@@ -56,7 +56,6 @@ class FileStorage():
             user_id = get_user_id(engine, session, user_name)
             os.makedirs(path / Path(folder_name))
             res = add_directory(engine, session, int(user_id), folder_name)
-            print(res)
         else:
             raise FolderExistException
 
@@ -95,7 +94,7 @@ class FileStorage():
                                 in list(f['data'].keys())]
             min_date = min(date_objects)
             max_date = max(date_objects)
-            add_file(engine, session, user_id, file.filename, min_date, max_date)
+            add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date)
         else:
             raise FolderNotFound
 
@@ -103,13 +102,15 @@ class FileStorage():
         pass
 
     def del_files(self, engine, session, data_id: int, folder_id: int, user_name: str):
-        user_id = get_user_id(engine, session, user_name)
+        # user_id = get_user_id(engine, session, user_name)
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
             file = get_file(engine, session, data_id)
+            print(file, data_id)
             if file:
-                path /= Path(file.filename)
+                path /= Path(file.file)
+                print(path)
                 os.remove(path)
                 del_file(engine, session, data_id)
             else:
