@@ -62,36 +62,40 @@ def authorization(engine, session, email: str, password: str):
 def search_email_by_token(engine, session, token: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.token == token).first()
-        logger.info(f"[Search email] Get user's email for user: {user.nickname} by token")
     if not bool(user):
+        logger.info(f"[Search email] Don't have user by this token")
         return None
+    logger.info(f"[Search email] Get user's email for user: {user.nickname} by token")
     return user.email
 
 
 def search_name_by_token(engine, session, token: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.token == token).first()
-        logger.info(f"[Search name] Get user's name for user: {user.nickname} by token")
     if not bool(user):
+        logger.info(f"[Search name] Don't have user by this token")
         return None
+    logger.info(f"[Search name] Get user's name for user: {user.nickname} by token")
     return user.nickname
 
 
 def search_token_by_email(engine, session, email: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.email == email).first()
-        logger.info(f"[Search token] Get user's token for user: {user.nickname} by email")
     if not bool(user):
+        logger.info(f"[Search token] Don't have user by this email")
         return None
+    logger.info(f"[Search token] Get user's token for user: {user.nickname} by email")
     return user.token
 
 
 def get_user_id(engine, session, nickname: str):
     with session(autoflush=False, bind=engine) as db:
         user = db.query(User).filter(User.nickname == nickname).first()
-        logger.info(f"[CRUD user] Get user id by nickname: {nickname}")
     if not bool(user):
+        logger.info(f"[CRUD user] Don't have user by this nickname")
         return None
+    logger.info(f"[CRUD user] Get user id by nickname: {nickname}")
     return user.id
 
 
@@ -108,9 +112,10 @@ def get_files(engine, session, user_id: int, directory_id: int, limit=10):
 def get_file(engine, session, file_id):
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
-        logger.info(f"[CRUD user] Get file by file_id: {file_id}")
     if not bool(file):
+        logger.info(f"[CRUD user]  Don't have file by file_id: {file_id}")
         return None
+    logger.info(f"[CRUD user] Get file by file_id: {file_id}")
     return file
 
 
@@ -125,9 +130,10 @@ def get_directory_id_by_name(engine, session, user_id: int, name_directory: str)
     with session(autoflush=False, bind=engine) as db:
         directory = db.query(Directory).filter(Directory.user_id == user_id,
                                                Directory.name_directory == name_directory).first()
-        logger.info(f"[CRUD directory] User with id: {user_id} get directory id by name {name_directory}")
     if not bool(directory):
+        logger.info(f"[CRUD directory] User with id: {user_id} don't have directory id by name {name_directory}")
         return None
+    logger.info(f"[CRUD directory] User with id: {user_id} get directory id by name {name_directory}")
     return directory.id
 
 
