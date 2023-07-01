@@ -16,6 +16,10 @@ uvicorn = "^0.22.0"
 pytest-cov = "^4.1.0"
 loguru = "^0.7.0"
 httpx = "^0.24.1"
+pillow = "^9.5.0"
+numpy = "^1.25.0"
+vesninlib = {path = "app/lib/vesninlib-1.1.tar"}
+pyproj = "^3.6.0"
 
 
 [build-system]
