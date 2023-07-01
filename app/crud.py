@@ -184,7 +184,6 @@ def update_file(engine, session, file_id: int, new_name: str, date=datetime.now(
         logger.info(f"[CRUD file] Rename file with id {file_id} from {old_name} to {new_name}")
 
 
-
 def update_description_file(engine, session, file_id: int, new_description: str, date=datetime.now()):
     with session(autoflush=False, bind=engine) as db:
         file = db.query(Uploaded_file).filter(Uploaded_file.id == file_id).first()
