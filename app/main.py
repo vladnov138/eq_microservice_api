@@ -32,6 +32,7 @@ from app.modules.security import generate_token
 app = FastAPI()
 storage = FileStorage()
 engine, session = connect()
+create_bd(engine)
 
 
 @app.post("/sign_up")
@@ -206,7 +207,7 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
 @app.post('/handle_data')
 def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list,
                 lat_limits: list | None = None, lon_limits: list | None = None, color_limits: dict | None = None,
-                ncols: int | None = 1):
+                scale: int | None = 1, ncols: int | None = 1):
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Handle data] Received request to handle files with id: [{data_id_array}] "
                 f"from folder with id: {folder_id} by user: {user_name}")
@@ -231,7 +232,16 @@ def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime
                         lat_limits = (-90, 90)
                     if not lon_limits or len(lon_limits) != 2:
                         lon_limits = (-180, 180)
-                    plot_map(times[i:i + ncols], data, description, lat_limits=lat_limits,
+                    if not color_limits:
+                        C_LIMITS = {
+                            'ROTI': [0, 0.5 * scale, 'TECu/min'],
+                            '2-10 minute TEC variations': [-0.4 * scale, 0.4 * scale, 'TECu'],
+                            '10-20 minute TEC variations': [-0.6 * scale, 0.6 * scale, 'TECu'],
+                            '20-60 minute TEC variations': [-1 * scale, 1 * scale, 'TECu'],
+                            'tec': [0, 50 * scale, 'TECu/min'],
+                            'tec_adjusted': [0, 50 * scale, 'TECu'],
+                        }
+                    plot_map(times[i:i + ncols], data, description, clims= C_LIMITS, lat_limits=lat_limits,
                              lon_limits=lon_limits, savefig=f'{savefig}', ncols=ncols)
                     with open(savefig, "rb") as image_file:
                         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
