@@ -10,6 +10,8 @@ import secrets
 test_db = 'test.db'
 # way = '/..' if 'app' in os.getcwd() else ''
 way = '/..'
+
+
 # print('WAY ', way, ' ', 'app' in os.getcwd())
 
 
@@ -94,7 +96,6 @@ def test_authorization():
     connect.clean_db(engine)
 
 
-
 def test_search_email_by_token():
     token = secrets.token_hex(16)
     email = 'test' + token + '@mail.ru'
@@ -103,9 +104,9 @@ def test_search_email_by_token():
     engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
-    answer = logic.search_email_by_token(engine, session, token) == email
+    assert logic.search_email_by_token(engine, session, token) == email
+    assert not bool(logic.search_email_by_token(engine, session, ''))
     connect.clean_db(engine)
-    assert answer
 
 
 def test_search_name_by_token():
@@ -116,9 +117,9 @@ def test_search_name_by_token():
     engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
-    answer = logic.search_name_by_token(engine, session, token) == nickname
+    assert logic.search_name_by_token(engine, session, token) == nickname
+    assert not bool(logic.search_name_by_token(engine, session, ''))
     connect.clean_db(engine)
-    assert answer
 
 
 def test_search_token_by_email():
@@ -129,9 +130,9 @@ def test_search_token_by_email():
     engine, session = connect.connect(test_db, way)
     connect.create_bd(engine)
     logic.add_user(engine, session, nickname, email, password, token)
-    answer = logic.search_token_by_email(engine, session, email) == token
+    assert logic.search_token_by_email(engine, session, email) == token
+    assert not bool(logic.search_token_by_email(engine, session, ''))
     connect.clean_db(engine)
-    assert answer
 
 
 def test_get_user_id():
@@ -143,6 +144,7 @@ def test_get_user_id():
     connect.create_bd(engine)
     user_id = logic.add_user(engine, session, nickname, email, password, token)
     assert logic.get_user_id(engine, session, nickname) == user_id
+    assert not bool(logic.get_user_id(engine, session, ''))
     connect.clean_db(engine)
 
 
@@ -175,8 +177,9 @@ def test_get_file():
     connect.create_bd(engine)
     new_file_id = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     new_file = logic.get_file(engine, session, new_file_id)
-    connect.clean_db(engine)
     assert new_file.id == new_file_id and new_file.user_id == user_id and new_file.file == file
+    assert not bool(logic.get_file(engine, session, new_file_id+1))
+    connect.clean_db(engine)
 
 
 def test_get_directories():
@@ -202,8 +205,9 @@ def test_get_directory_id_by_name():
     connect.create_bd(engine)
     new_directory_id = logic.add_directory(engine, session, user_id, directory_name)
     directory_id = logic.get_directory_id_by_name(engine, session, user_id, directory_name)
-    connect.clean_db(engine)
     assert directory_id == new_directory_id
+    assert not bool(logic.get_directory_id_by_name(engine, session, user_id, ''))
+    connect.clean_db(engine)
 
 
 def test_get_directory_by_id():
