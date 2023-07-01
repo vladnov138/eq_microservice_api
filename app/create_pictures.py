@@ -98,7 +98,7 @@ def create_third_type():  # dick knows what's going on here, but it seems you ca
     plt.savefig('data/result/8.png')
 
 
-def create_fourth_type():
+def create_fourth_type(): # simple
     sites = ['mers', 'nico', 'bshm', 'csar', 'mrav', 'nzrt', 'hama',
              'hrmn', 'drag', 'kabr', 'katz', 'zkro', 'tmar', 'ista']
     local_file = 'data/region_2023-02-06.h5'
@@ -107,7 +107,8 @@ def create_fourth_type():
     plt.savefig('data/result/9.png')
 
 
-def fit_and_plot_distribution(data, xmin=0, xmax=4000, namefile='data/result/10.png'):  # use bacause i don't want to reinstal vesninlib!!!!!
+def fit_and_plot_distribution(data, xmin=0, xmax=4000, namefile='data/result/10.png'):
+    # use bacause i don't want to reinstal vesninlib!!!!!
     plt.figure(figsize=(18, 9))
     mu, std = norm.fit(data)
     plt.grid()
