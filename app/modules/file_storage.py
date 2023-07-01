@@ -28,7 +28,7 @@ class FileNotFound(Exception):
 class FileStorage():
     __instance = None
 
-    STORAGE_PATH = Path(os.getcwd()) / Path('users_data') if 'app' not in os.getcwd() else Path(os.getcwd()) / Path('app')
+    STORAGE_PATH = Path(os.getcwd()) / Path('users_data')
     CLEAN_AFTER_SECONDS = 24 * 3600 * 10
     TOKEN_LENGTH = 16
 
@@ -76,41 +76,44 @@ class FileStorage():
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
-            os.rename(path / Path(folder.name_directory), path / Path(new_name))
+            shutil.move(path / Path(folder.name_directory), path / Path(new_name))
             update_name_directory(engine, session, folder_id, new_name)
         else:
             raise FolderNotFound
 
-    async def create_file(self, engine, session, user_name: str, folder_id: int, file: UploadFile):
+    async def create_file(self, engine, session, user_name: str, folder_id: int, file: UploadFile,
+                          description: str):
         user_id = get_user_id(engine, session, user_name)
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
-            path /= Path(file.filename)
+            path /= Path(folder.name_directory) / Path(file.filename)
             with open(path, "wb") as f:
                 f.write(await file.read())
             with h5py.File(path, "r") as f:
-                date_objects = [datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f") for date_str
+                print(list(f['data'].keys()))
+                date_objects = [datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S.%f') for date_str
                                 in list(f['data'].keys())]
+            print(date_objects)
             min_date = min(date_objects)
             max_date = max(date_objects)
-            add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date)
+            add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date, description=description)
         else:
             raise FolderNotFound
+
+    def get_directory_to_file(self, user_name: str, folder_name: str, file_name: str):
+        return self.STORAGE_PATH / Path(user_name) / Path(folder_name) / Path(file_name)
 
     def update_file(self):
         pass
 
     def del_files(self, engine, session, data_id: int, folder_id: int, user_name: str):
-        # user_id = get_user_id(engine, session, user_name)
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
             file = get_file(engine, session, data_id)
-            print(file, data_id)
             if file:
-                path /= Path(file.file)
-                print(path)
+                path /= Path(folder.name_directory) / Path(file.file)
                 os.remove(path)
                 del_file(engine, session, data_id)
             else:
