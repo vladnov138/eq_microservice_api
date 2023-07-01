@@ -2,7 +2,8 @@ import os
 
 from fastapi.testclient import TestClient
 
-from ..crud import get_user_id, del_user, get_directories, del_directory, search_name_by_token, check_user
+from ..crud import get_user_id, del_user, get_directories, del_directory, search_name_by_token, check_user, \
+    get_directory_by_id
 from ..main import app, engine, session, storage
 
 
@@ -14,8 +15,8 @@ class TestApp():
     token = None
 
     def test_sign_up(self):
-        if check_user(engine, session, self.nickname):
-            del_user(engine, session, self.nickname)
+        # if check_user(engine, session, self.nickname):
+        #     del_user(engine, session, self.nickname)
         params = {'user_name': self.nickname,
                   'user_email': self.email,
                   'password': self.password}
@@ -65,8 +66,8 @@ class TestApp():
         token = self.get_token()
         dirs = get_directories(engine, session, get_user_id(engine, session,
                                                             search_name_by_token(engine, session, token)))
-        for dir in dirs:
-            storage.delete_folder(engine, session, self.nickname, dir.id)
+        # for dir in dirs:
+        #     storage.delete_folder(engine, session, self.nickname, dir.id)
         params = {'token': token,
                   'name': 'test_folder'}
         response = self.client.post('/create_new_folder', params=params)
@@ -75,7 +76,7 @@ class TestApp():
         response = self.client.post('/create_new_folder', params=params)
         assert response.status_code == 420
         assert response.json()['detail'] == 'The folder already exists'
-        # self.check_token('/create_new_folder', params)
+        self.check_token('/create_new_folder', params)
 
     def test_get_folder(self):
         params = {'token': self.get_token(),
@@ -83,7 +84,7 @@ class TestApp():
         response = self.client.post('/get_folders', params=params)
         assert response.status_code == 200
         assert len(response.json()['directories']) == 1
-        # self.check_token('/get_folders', params)
+        self.check_token('/get_folders', params)
 
     def test_rename_folder(self):
         token = self.get_token()
@@ -93,22 +94,23 @@ class TestApp():
                   'new_name': 'new_test_folder'}
         response = self.client.put('/rename_folder', params=params)
         assert response.status_code == 200
-        # TODO get name
+        folder = get_directory_by_id(engine, session, id)
+        assert folder.name_directory == 'new_test_folder'
         params['folder_id'] = -1
         response = self.client.put('/rename_folder', params=params)
         assert response.status_code == 421
         assert response.json()['detail'] == 'The folder not found'
-        # TODO self.check_token('/rename_folder', params)
 
     def test_upload_data(self):
         token = self.get_token()
         folder_id = self.get_folder_id(token)
         data_id = self.get_file_id(token)
-        if data_id:
-            storage.del_files(engine, session, data_id, folder_id,
-                              search_name_by_token(engine, session, token))
+        # if data_id:
+        #     storage.del_files(engine, session, data_id, folder_id,
+        #                       search_name_by_token(engine, session, token))
         params = {'token': token,
-                  'folder_id': folder_id}
+                  'folder_id': folder_id,
+                  'description': '2-10 minute TEC variations'}
         src = './app/test/dtec_2_10_01_17.h5'
         if 'test' in os.getcwd():
             src = './dtec_2_10_01_17.h5'
@@ -129,15 +131,18 @@ class TestApp():
         response = self.client.post('/get_data', params=params)
         assert response.status_code == 200
         assert len(response.json()['data']) == 1
+        self.check_token('/get_data', params=params)
 
     def test_get_data_by_date(self):
         token = self.get_token()
         folder_id = self.get_folder_id(token)
-        # params = {'token': token,
-        #           'folder_id': folder_id
-        #           'start_date': ,
-        #           'finish_date': }
-        # TODO
+        params = {'token': token,
+                  'folder_id': folder_id,
+                  'start_date': '2023-02-06 01:17:00',
+                  'finish_date': '2023-02-06 01:17:30'}
+        response = self.client.post('/get_data', params=params)
+        assert response.status_code == 200
+        assert len(response.json()['data']) == 1
 
     def test_delete_data(self):
         token = self.get_token()
