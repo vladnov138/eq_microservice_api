@@ -1,20 +1,27 @@
+import base64
 import os
 import sys
+from pathlib import Path
 
 import uvicorn
 from datetime import date, datetime
+from datetime import (datetime,
+                      timedelta)
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from loguru import logger
 from pydantic import EmailStr
 from sqlalchemy import create_engine
+from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound, FileNotFound
 from app.database import connect, create_bd
 from app.crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
-    get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories
+    get_files, get_dates, update_file, del_file, add_file, add_directory, search_name_by_token, get_directories, \
+    get_file, get_directory_by_id
 
 from app.modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
     generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken, generate_success_wdata, \
@@ -22,12 +29,11 @@ from app.modules.responses import generate_success_response, generate_success_re
     generate_file_not_found_error
 from app.modules.security import generate_token
 
-
 app = FastAPI()
 storage = FileStorage()
-storage.init_storage()
 engine, session = connect()
 create_bd(engine)
+
 
 @app.post("/sign_up")
 def sign_up(user_name: str, user_email: EmailStr, password: str) -> dict:
@@ -114,13 +120,13 @@ def rename_folder(token: str, folder_id: int, new_name: str) -> dict:
 
 
 @app.post("/upload_data")
-async def upload_data(token: str, folder_id: int, file: UploadFile) -> dict:
+async def upload_data(token: str, folder_id: int, file: UploadFile, description: str) -> dict:
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Upload data] Received request to upload data to folder with id: {folder_id} "
                 f"for user: {user_name}")
     if user_name:
         try:
-            await storage.create_file(engine, session, user_name, folder_id, file)
+            await storage.create_file(engine, session, user_name, folder_id, file, description)
         except FolderNotFound:
             logger.error(f"[Upload data] Folder with id: {folder_id} not found for user: {user_name}")
             return generate_folder_not_found_error()
@@ -198,7 +204,61 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
     return generate_bad_token_response()
 
 
+@app.post('/handle_data')
+def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list,
+                lat_limits: list | None = None, lon_limits: list | None = None, color_limits: dict | None = None,
+                scale: int | None = 1, ncols: int | None = 1):
+    user_name = search_name_by_token(engine, session, token)
+    logger.info(f"[Handle data] Received request to handle files with id: [{data_id_array}] "
+                f"from folder with id: {folder_id} by user: {user_name}")
+    if user_name:
+        folder = get_directory_by_id(engine, session, folder_id)
+        result = []
+        for data_id in data_id_array:
+            files_product = {}
+            data_file = get_file(engine, session, data_id)
+            path = storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)
+            files_product[storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)] \
+                = data_file.description
+            description = data_file.description
+            needed_datetime_array = [datetime.strptime(t, '%Y-%m-%d %H:%M:%S.%f') for t in needed_datetime_array]
+            times = [t.replace(tzinfo=t.tzinfo or _UTC)
+                     for t in needed_datetime_array]
+            data = {description: retrieve_data(path, description)}
+            savefig = storage.STORAGE_PATH / Path(user_name) / Path(folder.name_directory) / Path('test.png')
+            if len(times) >= ncols:
+                for i in range(0, len(times), ncols):
+                    if not lat_limits or len(lat_limits) != 2:
+                        lat_limits = (-90, 90)
+                    if not lon_limits or len(lon_limits) != 2:
+                        lon_limits = (-180, 180)
+                    if not color_limits:
+                        C_LIMITS = {
+                            'ROTI': [0, 0.5 * scale, 'TECu/min'],
+                            '2-10 minute TEC variations': [-0.4 * scale, 0.4 * scale, 'TECu'],
+                            '10-20 minute TEC variations': [-0.6 * scale, 0.6 * scale, 'TECu'],
+                            '20-60 minute TEC variations': [-1 * scale, 1 * scale, 'TECu'],
+                            'tec': [0, 50 * scale, 'TECu/min'],
+                            'tec_adjusted': [0, 50 * scale, 'TECu'],
+                        }
+                    plot_map(times[i:i + ncols], data, description, clims= C_LIMITS, lat_limits=lat_limits,
+                             lon_limits=lon_limits, savefig=f'{savefig}', ncols=ncols)
+                    with open(savefig, "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    result.append(encoded_string)
+            else:
+                raise HTTPException(status_code=400, detail='Error! Ncols < len(times)')
+            with open(savefig, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            return {'status': 'success', 'error': None, 'picture': encoded_string}
+    logger.error(f"[Handle data] Wrong token for user: {user_name}")
+    return generate_bad_token_response()
+
+
 def main():
+    storage.init_storage()
+    engine, session = connect()
+    create_bd(engine)
     uvicorn.run(f"{os.path.basename(__file__)[:-3]}:app", log_level="info")
 
 
