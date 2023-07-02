@@ -1,9 +1,11 @@
 import os
+from datetime import datetime
 
 from fastapi.testclient import TestClient
 
 from ..crud import get_user_id, del_user, get_directories, del_directory, search_name_by_token, check_user, \
     get_directory_by_id
+from ..database import clean_db
 from ..main import app, engine, session, storage
 
 
@@ -100,6 +102,10 @@ class TestApp():
         response = self.client.put('/rename_folder', params=params)
         assert response.status_code == 421
         assert response.json()['detail'] == 'The folder not found'
+        params['token'] += '123'
+        response = self.client.put('rename_folder', params=params)
+        assert response.status_code == 412
+        assert response.json()['detail'] == 'Wrong token'
 
     def test_upload_data(self):
         token = self.get_token()
@@ -122,6 +128,10 @@ class TestApp():
             response = self.client.post('/upload_data', params=params, files=upload_file)
             assert response.status_code == 421
             assert response.json()['detail'] == 'The folder not found'
+            params['token'] += '123'
+            response = self.client.post('upload_data', params=params, files=upload_file)
+            assert response.status_code == 412
+            assert response.json()['detail'] == 'Wrong token'
 
     def test_get_data(self):
         token = self.get_token()
@@ -138,11 +148,14 @@ class TestApp():
         folder_id = self.get_folder_id(token)
         params = {'token': token,
                   'folder_id': folder_id,
-                  'start_date': '2023-02-06 01:17:00',
-                  'finish_date': '2023-02-06 01:17:30'}
-        response = self.client.post('/get_data', params=params)
+                  # 'start_date': '2023-02-06 01:17:00',
+                  'start_date': datetime(2023, 2, 6, 1, 17),
+                  # 'finish_date': '2023-02-06 01:17:30'}
+                  'finish_date': datetime(2023, 2, 6, 1, 17, 30)}
+        response = self.client.post('/get_data_by_date', params=params)
         assert response.status_code == 200
         assert len(response.json()['data']) == 1
+        self.check_token('/get_data_by_date', params=params)
 
     def test_delete_data(self):
         token = self.get_token()
@@ -156,6 +169,14 @@ class TestApp():
         response = self.client.delete('/delete_data', params=params)
         assert response.status_code == 400
         assert response.json()['detail'] == 'File not found'
+        params['folder_id'] = -1
+        response = self.client.delete('/delete_data', params=params)
+        assert response.status_code == 421
+        assert response.json()['detail'] == 'The folder not found'
+        params['token'] += '123'
+        response = self.client.delete('delete_data', params=params)
+        assert response.status_code == 412
+        assert response.json()['detail'] == 'Wrong token'
 
     def test_delete_folder(self):
         token = self.get_token()
@@ -167,3 +188,10 @@ class TestApp():
         response = self.client.delete('delete_folder', params=params)
         assert response.status_code == 421
         assert response.json()['detail'] == 'The folder not found'
+        params['token'] += '123'
+        response = self.client.delete('delete_folder', params=params)
+        assert response.status_code == 412
+        assert response.json()['detail'] == 'Wrong token'
+
+    def test_del_db(self):
+        clean_db(engine)
