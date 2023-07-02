@@ -149,8 +149,8 @@ def get_directory_by_id(engine, session, directory_id: int):
 def get_dates(engine, session, user_id: int, first_date, second_date, limit=10):
     with session(autoflush=False, bind=engine) as db:
         files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
-                                               Uploaded_file.range_start >= first_date,
-                                               Uploaded_file.range_end <= second_date).limit(limit).all()
+                                               Uploaded_file.range_start <= first_date,
+                                               Uploaded_file.range_end >= second_date).limit(limit).all()
         logger.info(f"[CRUD file] Get files for user with id: {user_id} by date between {first_date} and "
                     f"{second_date}")
     return files
