@@ -91,10 +91,8 @@ class FileStorage():
             with open(path, "wb") as f:
                 f.write(await file.read())
             with h5py.File(path, "r") as f:
-                print(list(f['data'].keys()))
                 date_objects = [datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S.%f') for date_str
                                 in list(f['data'].keys())]
-            print(date_objects)
             min_date = min(date_objects)
             max_date = max(date_objects)
             add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date, description=description)
@@ -104,8 +102,8 @@ class FileStorage():
     def get_directory_to_file(self, user_name: str, folder_name: str, file_name: str):
         return self.STORAGE_PATH / Path(user_name) / Path(folder_name) / Path(file_name)
 
-    def update_file(self):
-        pass
+    # def update_file(self):
+    #     pass
 
     def del_files(self, engine, session, data_id: int, folder_id: int, user_name: str):
         path = self.STORAGE_PATH / Path(user_name)
