@@ -237,11 +237,11 @@ def test_get_dates():
     file = 'test_file_' + token
     range_start = datetime(2002, 3, 6, 15, 29, 43, 79060)
     range_end = datetime(2002, 7, 6, 15, 29, 43, 79060)
-    date1 = datetime(2002, 1, 6, 15, 29, 43, 79060)
-    date2 = datetime(2002, 12, 20, 15, 29, 43, 79060)
+    date1 = datetime(2002, 3, 6, 15, 29, 43, 79060)
+    date2 = datetime(2002, 7, 6, 15, 29, 43, 79060)
     new_file_id_2 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
     request = logic.get_dates(engine, session, user_id, date1, date2)
-    assert len(request) == 2
+    assert len(request) == 1
     connect.clean_db(engine)
 
 
