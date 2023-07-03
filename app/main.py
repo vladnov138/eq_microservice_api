@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import requests
 import uvicorn
 from datetime import date, datetime
 from datetime import (datetime,
@@ -16,13 +17,13 @@ from pydantic import EmailStr
 from sqlalchemy import create_engine
 from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
     get_dist_time, plot_distance_time, EPICENTERS, get_sites_coords, select_visible_sats_data, get_visible_sats_names, \
-    select_sats_by_params, select_reoder_data, get_dtecs, calculate_distances_from_epicenter
+    select_sats_by_params, select_reoder_data, get_dtecs, calculate_distances_from_epicenter, plot_line
 
 from app.modules.helper import plot_single_sat, fit_and_plot_distribution
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound, FileNotFound
+from app.modules.file_storage import FileStorage, FolderExistException, FolderNotFound, FileNotFound, FileExistException
 from app.database import connect, create_bd
 from app.crud import check_user, add_user, authorization, search_email_by_token, search_token_by_email, \
     get_user_id, \
@@ -32,7 +33,7 @@ from app.crud import check_user, add_user, authorization, search_email_by_token,
 from app.modules.responses import generate_success_response, generate_success_regdata, generate_bad_authdata_response, \
     generate_bad_token_response, generate_username_inuse_response, generate_success_wtoken, generate_success_wdata, \
     generate_folder_exist_error, generate_folder_not_found_error, generate_success_directories, \
-    generate_file_not_found_error
+    generate_file_not_found_error, generate_download_failed_error, generate_file_exist_error
 from app.modules.security import generate_token
 
 app = FastAPI()
@@ -136,7 +137,38 @@ async def upload_data(token: str, folder_id: int, file: UploadFile, description:
         except FolderNotFound:
             logger.error(f"[Upload data] Folder with id: {folder_id} not found for user: {user_name}")
             return generate_folder_not_found_error()
+        except FileExistException:
+            logger.error(f"[Upload data] File in directory with id: {folder_id} is already exists "
+                         f"for user: {user_name}")
+            return generate_file_exist_error()
         logger.info(f"[Upload data] {file.filename} was uploaded to folder with id: {folder_id} "
+                    f"by user: {user_name}")
+        return generate_success_response()
+    logger.error(f"[Upload data] Wrong token for user: {user_name}")
+    return generate_bad_token_response()
+
+
+@app.post("/upload_data_by_url")
+async def upload_data_by_url(token: str, folder_id: int, download_url: str, description: str) -> dict:
+    user_name = search_name_by_token(engine, session, token)
+    logger.info(f"[Upload data] Received request to upload data to folder with id: {folder_id} "
+                f"for user: {user_name}")
+    if user_name:
+        try:
+            response = requests.get(download_url)
+            file = response.content
+            await storage.create_file(engine, session, user_name, folder_id, file, description)
+        except FolderNotFound:
+            logger.error(f"[Upload data] Folder with id: {folder_id} not found for user: {user_name}")
+            return generate_folder_not_found_error()
+        except FileExistException:
+            logger.error(f"[Upload data] File in directory with id: {folder_id} is already exists "
+                         f"for user: {user_name}")
+            return generate_file_exist_error()
+        except requests.exceptions.RequestException:
+            logger.error(f"[Upload data] Failed to download file from URL: {download_url}")
+            return generate_download_failed_error()
+        logger.info(f"[Upload data] File from URL: {download_url} was uploaded to folder with id: {folder_id} "
                     f"by user: {user_name}")
         return generate_success_response()
     logger.error(f"[Upload data] Wrong token for user: {user_name}")
@@ -279,7 +311,6 @@ def handle_data_graphic2(token: str, folder_id: int, data_id_array: list, title:
         folder = get_directory_by_id(engine, session, folder_id)
         result = []
         for data_id in data_id_array:
-            files_product = {}
             data_file = get_file(engine, session, data_id)
             path = storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)
             plot_sites(path, satellite, sites, title, shift=shift)
@@ -293,7 +324,8 @@ def handle_data_graphic2(token: str, folder_id: int, data_id_array: list, title:
 
 
 @app.post('/handle_data/graphic3')
-def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title: str, time: str | None = '10:24'):
+def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title: str, time: str | None = '10:24',
+                         plot_lines: list | None = None):
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Handle data] Received request to handle files with id: [{data_id_array}] "
                 f"from folder with id: {folder_id} by user: {user_name}")
@@ -307,6 +339,8 @@ def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title:
         x, y, c = get_dist_time(data, EPICENTERS[time])
         plot_distance_time(x, y, c, title, data=data)
         savefig = storage.STORAGE_PATH / Path(user_name) / Path(folder.name_directory) / Path('test.png')
+        for p_line in plot_lines:
+            plot_line(p_line[0], datetime.strptime(p_line[1], '%Y-%m-%d %H:%M:%S.%f'), style=p_line[2])
         plt.savefig(savefig)
         with open(savefig, "rb") as image_file:
             result.append(base64.b64encode(image_file.read()).decode('utf-8'))
@@ -352,7 +386,7 @@ def handle_data_graphic4(token: str, folder_id: int, data_id_array: list, title:
 @app.post('/handle_data/graphic5')
 def handle_data_graphic5(token: str, folder_id: int, data_id_range: list, needed_datetime: datetime):
     user_name = search_name_by_token(engine, session, token)
-    logger.info(f"[Handle data] Received request to handle files with id: [{data_id_array}] "
+    logger.info(f"[Handle data] Received request to handle files with id: [{data_id_range}] "
                 f"from folder with id: {folder_id} by user: {user_name}")
     if user_name:
         folder = get_directory_by_id(engine, session, folder_id)
