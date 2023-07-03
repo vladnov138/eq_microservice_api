@@ -10,9 +10,13 @@ from datetime import (datetime,
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from loguru import logger
+from matplotlib import pyplot as plt
 from pydantic import EmailStr
 from sqlalchemy import create_engine
-from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data
+from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
+    get_dist_time, plot_distance_time
+
+from app.create_pictures import eq_location
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -165,23 +169,23 @@ async def get_data_by_date(token: str, folder_id: int, start_date: datetime, fin
     return generate_bad_token_response()
 
 
-@app.post("/update_data")
-async def update_data(token: str, data_id: int, folder_id: int, file_id: int, new_name: str,
-                      file: UploadFile) -> dict:
-    user_name = search_email_by_token(engine, session, token)
-    logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from "
-                f"folder with id: {folder_id} "
-                f"for user: {user_name}")
-    if user_name:
-        filename = file.filename
-        path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
-        with open(path, "wb") as f:
-            f.write(await file.read())
-        user_id = get_user_id(engine, session, user_name)
-        update_file(engine, session, data_id, filename)
-        return generate_success_response()
-    logger.error(f"[Update data] Wrong token for user: {user_name}")
-    return generate_bad_token_response()
+# @app.post("/update_data")
+# async def update_data(token: str, data_id: int, folder_id: int, file_id: int, new_name: str,
+#                       file: UploadFile) -> dict:
+#     user_name = search_email_by_token(engine, session, token)
+#     logger.info(f"[Update data] Received request to rename file with id: {file_id} to {new_name} from "
+#                 f"folder with id: {folder_id} "
+#                 f"for user: {user_name}")
+#     if user_name:
+#         filename = file.filename
+#         path = os.path.join(os.getcwd(), 'users_data', user_name, filename)
+#         with open(path, "wb") as f:
+#             f.write(await file.read())
+#         user_id = get_user_id(engine, session, user_name)
+#         update_file(engine, session, data_id, filename)
+#         return generate_success_response()
+#     logger.error(f"[Update data] Wrong token for user: {user_name}")
+#     return generate_bad_token_response()
 
 
 @app.delete("/delete_data")
@@ -204,8 +208,8 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
     return generate_bad_token_response()
 
 
-@app.post('/handle_data')
-def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list,
+@app.post('/handle_data/graphic1')
+def handle_data_graphic1(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list,
                 lat_limits: list | None = None, lon_limits: list | None = None, color_limits: dict | None = None,
                 scale: int | None = 1, ncols: int | None = 1):
     user_name = search_name_by_token(engine, session, token)
@@ -232,6 +236,7 @@ def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime
                         lat_limits = (-90, 90)
                     if not lon_limits or len(lon_limits) != 2:
                         lon_limits = (-180, 180)
+                    C_LIMITS = color_limits
                     if not color_limits:
                         C_LIMITS = {
                             'ROTI': [0, 0.5 * scale, 'TECu/min'],
@@ -241,6 +246,7 @@ def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime
                             'tec': [0, 50 * scale, 'TECu/min'],
                             'tec_adjusted': [0, 50 * scale, 'TECu'],
                         }
+
                     plot_map(times[i:i + ncols], data, description, clims= C_LIMITS, lat_limits=lat_limits,
                              lon_limits=lon_limits, savefig=f'{savefig}', ncols=ncols)
                     with open(savefig, "rb") as image_file:
@@ -251,6 +257,58 @@ def handle_data(token: str, folder_id: int, data_id_array: list, needed_datetime
             with open(savefig, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
             return {'status': 'success', 'error': None, 'picture': encoded_string}
+    logger.error(f"[Handle data] Wrong token for user: {user_name}")
+    return generate_bad_token_response()
+
+
+@app.post('/handle_data/graphic2')
+def handle_data_graphic2(token: str, folder_id: int, data_id_array: list, title: str,
+                         satellite: str | None = None, sites: list | None = None,
+                         shift: float | None = 0.5):
+    user_name = search_name_by_token(engine, session, token)
+    logger.info(f"[Handle data] Received request to handle files with id: [{data_id_array}] "
+                f"from folder with id: {folder_id} by user: {user_name}")
+    if user_name:
+        if not sites:
+            sites = ['mers', 'nico', 'bshm', 'csar', 'mrav', 'nzrt', 'hama',
+                'hrmn', 'drag', 'kabr', 'katz', 'zkro', 'tmar', 'ista']
+        if not satellite:
+            satellite = 'G17'
+        folder = get_directory_by_id(engine, session, folder_id)
+        result = []
+        for data_id in data_id_array:
+            files_product = {}
+            data_file = get_file(engine, session, data_id)
+            path = storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)
+            plot_sites(path, satellite, sites, title, shift=shift)
+            savefig = storage.STORAGE_PATH / Path(user_name) / Path(folder.name_directory) / Path('test.png')
+            plt.savefig(savefig)
+            with open(savefig, "rb") as image_file:
+                result.append(base64.b64encode(image_file.read()).decode('utf-8'))
+        return {'status': 'success', 'error': None, 'picture': result}
+    logger.error(f"[Handle data] Wrong token for user: {user_name}")
+    return generate_bad_token_response()
+
+
+@app.post('/handle_data/graphic3')
+def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title: str):
+    user_name = search_name_by_token(engine, session, token)
+    if user_name:
+        result = []
+        if len(data_id_array) < 2:
+            return HTTPException(status_code=400, detail='Minimum two files for drawing this graphic')
+        folder = get_directory_by_id(engine, session, folder_id)
+        data_file_paths = [storage.get_directory_to_file(user_name, folder.name_directory,
+                                                         get_file(engine, session, data_id).file)
+                           for data_id in data_id_array]
+        data = retrieve_data_multiple_source(data_file_paths, title)
+        x, y, c = get_dist_time(data, eq_location)
+        plot_distance_time(x, y, c, title, data=data)
+        savefig = storage.STORAGE_PATH / Path(user_name) / Path(folder.name_directory) / Path('test.png')
+        plt.savefig(savefig)
+        with open(savefig, "rb") as image_file:
+            result.append(base64.b64encode(image_file.read()).decode('utf-8'))
+        return {'status': 'success', 'error': None, 'picture': result}
     logger.error(f"[Handle data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
 
