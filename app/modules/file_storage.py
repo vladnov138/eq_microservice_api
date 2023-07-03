@@ -92,7 +92,7 @@ class FileStorage():
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
             path /= Path(folder.name_directory)
-            if file.filename not in path:
+            if file.filename not in os.listdir(path):
                 path /= Path(file.filename)
                 with open(path, "wb") as f:
                     f.write(await file.read())
