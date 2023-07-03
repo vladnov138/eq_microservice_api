@@ -243,7 +243,7 @@ async def delete_data(token: str, folder_id: int, data_id: int) -> dict:
 
 
 @app.post('/handle_data/graphic1')
-def handle_data_graphic1(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list,
+def handle_data_graphic1(token: str, folder_id: int, data_id_array: list, needed_datetime_array: list, title: str | None,
                 lat_limits: list | None = None, lon_limits: list | None = None, color_limits: dict | None = None,
                 scale: int | None = 1, ncols: int | None = 1):
     user_name = search_name_by_token(engine, session, token)
@@ -258,7 +258,7 @@ def handle_data_graphic1(token: str, folder_id: int, data_id_array: list, needed
             path = storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)
             files_product[storage.get_directory_to_file(user_name, folder.name_directory, data_file.file)] \
                 = data_file.description
-            description = data_file.description
+            description = data_file.description if not title else title
             needed_datetime_array = [datetime.strptime(t, '%Y-%m-%d %H:%M:%S.%f') for t in needed_datetime_array]
             times = [t.replace(tzinfo=t.tzinfo or _UTC)
                      for t in needed_datetime_array]
@@ -295,7 +295,7 @@ def handle_data_graphic1(token: str, folder_id: int, data_id_array: list, needed
     return generate_bad_token_response()
 
 
-@app.post('/handle_data/graphic2')
+@app.post('/handle_data_region/graphic2')
 def handle_data_graphic2(token: str, folder_id: int, data_id_array: list, title: str,
                          satellite: str | None = None, sites: list | None = None,
                          shift: float | None = 0.5):
@@ -340,7 +340,13 @@ def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title:
         plot_distance_time(x, y, c, title, data=data)
         savefig = storage.STORAGE_PATH / Path(user_name) / Path(folder.name_directory) / Path('test.png')
         for p_line in plot_lines:
-            plot_line(p_line[0], datetime.strptime(p_line[1], '%Y-%m-%d %H:%M:%S.%f'), style=p_line[2])
+            style = 'solid'
+            if len(p_line) == 3:
+                style = p_line[2]
+            elif len(p_line) != 2:
+                raise HTTPException(status_code=400, detail=f"Invalid number of plot_lines. {len(p_line)}"
+                                                            f"instead of 2 or 3")
+            plot_line(p_line[0], datetime.strptime(p_line[1], '%Y-%m-%d %H:%M:%S.%f'), style=style)
         plt.savefig(savefig)
         with open(savefig, "rb") as image_file:
             result.append(base64.b64encode(image_file.read()).decode('utf-8'))
@@ -349,7 +355,7 @@ def handle_data_graphic3(token: str, folder_id: int, data_id_array: list, title:
     return generate_bad_token_response()
 
 
-@app.post('/handle_data/graphic4')
+@app.post('/handle_data_region/graphic4')
 def handle_data_graphic4(token: str, folder_id: int, data_id_array: list, title: str, needed_datetime: datetime,
                          satellite: str):
     user_name = search_name_by_token(engine, session, token)
@@ -383,7 +389,7 @@ def handle_data_graphic4(token: str, folder_id: int, data_id_array: list, title:
     return generate_bad_token_response()
 
 
-@app.post('/handle_data/graphic5')
+@app.post('/handle_data_region/graphic5')
 def handle_data_graphic5(token: str, folder_id: int, data_id_range: list, needed_datetime: datetime):
     user_name = search_name_by_token(engine, session, token)
     logger.info(f"[Handle data] Received request to handle files with id: [{data_id_range}] "
@@ -428,7 +434,6 @@ def handle_data_graphic5(token: str, folder_id: int, data_id_range: list, needed
         return {'status': 'success', 'error': None, 'picture': result}
     logger.error(f"[Handle data] Wrong token for user: {user_name}")
     return generate_bad_token_response()
-
 
 
 def main():
