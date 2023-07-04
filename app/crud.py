@@ -99,11 +99,14 @@ def get_user_id(engine, session, nickname: str):
     return user.id
 
 
-def get_files(engine, session, user_id: int, directory_id: int, limit=10):
+def get_files(engine, session, user_id: int, directory_id: int, limit=10, desc=0):
     with session(autoflush=False, bind=engine) as db:
-        files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
-                                               Uploaded_file.directory_id == directory_id).order_by(
-            Uploaded_file.date.desc()).limit(limit).all()
+        if desc:
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
+                                                   Uploaded_file.directory_id == directory_id).order_by(Uploaded_file.date.desc()).limit(limit).all()
+        else:
+            files = db.query(Uploaded_file).filter(Uploaded_file.user_id == user_id,
+                                                   Uploaded_file.directory_id == directory_id).order_by(Uploaded_file.date.asc()).limit(limit).all()
         logger.info(f"[CRUD file] Get {limit} files from directory "
                     f"with id: {directory_id} for user with id: {user_id}.")
     return files
