@@ -17,6 +17,10 @@ class FolderExistException(Exception):
     pass
 
 
+class FileExistException(Exception):
+    pass
+
+
 class FolderNotFound(Exception):
     pass
 
@@ -55,7 +59,7 @@ class FileStorage():
         if folder_name not in os.listdir(path):
             user_id = get_user_id(engine, session, user_name)
             os.makedirs(path / Path(folder_name))
-            res = add_directory(engine, session, int(user_id), folder_name)
+            add_directory(engine, session, int(user_id), folder_name)
         else:
             raise FolderExistException
 
@@ -87,15 +91,23 @@ class FileStorage():
         path = self.STORAGE_PATH / Path(user_name)
         folder = get_directory_by_id(engine, session, folder_id)
         if folder and folder.name_directory in os.listdir(path):
-            path /= Path(folder.name_directory) / Path(file.filename)
-            with open(path, "wb") as f:
-                f.write(await file.read())
-            with h5py.File(path, "r") as f:
-                date_objects = [datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S.%f') for date_str
-                                in list(f['data'].keys())]
-            min_date = min(date_objects)
-            max_date = max(date_objects)
-            add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date, description=description)
+            path /= Path(folder.name_directory)
+            if file.filename not in os.listdir(path):
+                path /= Path(file.filename)
+                with open(path, "wb") as f:
+                    f.write(await file.read())
+                try:
+                    with h5py.File(path, "r") as f:
+                        date_objects = [datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S.%f') for date_str
+                                        in list(f['data'].keys())]
+                    min_date = min(date_objects)
+                    max_date = max(date_objects)
+                    add_file(engine, session, user_id, folder_id, file.filename, min_date, max_date,
+                             description=description)
+                except KeyError:
+                    add_file(engine, session, user_id, folder_id, file.filename, None, None, description=description)
+            else:
+                raise FileExistException
         else:
             raise FolderNotFound
 

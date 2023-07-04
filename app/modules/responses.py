@@ -36,8 +36,12 @@ def generate_bad_authdata_response():
 def generate_folder_exist_error():
     """Returns data for cases when folder exists"""
     # return {'success': 'false', 'error': {'code': 420, 'description': 'The folder already exists'}}
-    raise HTTPException(status_code=420, detail='The folder already exists')
+    raise HTTPException(status_code=400, detail='The folder already exists')
 
+def generate_file_exist_error():
+    """Returns data for cases when folder exists"""
+    # return {'success': 'false', 'error': {'code': 420, 'description': 'The folder already exists'}}
+    raise HTTPException(status_code=400, detail='The file already exists')
 
 def generate_folder_not_found_error():
     """Returns data for cases when folder not found"""
@@ -47,6 +51,9 @@ def generate_folder_not_found_error():
 def generate_file_not_found_error():
     """Returns data for cases when file not found"""
     raise HTTPException(status_code=400, detail='File not found')
+
+def generate_download_failed_error():
+    raise HTTPException(status_code=400, detail='Request exception. Check your url.')
 
 def generate_success_directories(directories: list):
     """Generates response for reading directories"""
