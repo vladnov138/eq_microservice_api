@@ -4,7 +4,7 @@ from random import random
 import app.crud as logic
 import app.database as connect
 from app.models import User, Uploaded_file, Directory
-from datetime import datetime
+from datetime import datetime, timedelta
 import secrets
 
 test_db = 'test.db'
@@ -156,13 +156,19 @@ def test_get_files():
     range_start = datetime.now()
     range_end = datetime.now()
     engine, session = connect.connect(test_db, way)
+    connect.clean_db(engine)
     connect.create_bd(engine)
     new_file_id_1 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
-    new_file_id_2 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end)
+    date_now = range_start + timedelta(days=10)
+    new_file_id_2 = logic.add_file(engine, session, user_id, directory_id, file, range_start, range_end, date=date_now)
     request = logic.get_files(engine, session, user_id, directory_id)
     assert len(request) == 2 \
            and request[0].id == new_file_id_1 \
            and request[1].id == new_file_id_2
+    request = logic.get_files(engine, session, user_id, directory_id, 10, desc=1)
+    assert len(request) == 2 \
+           and request[1].id == new_file_id_1 \
+           and request[0].id == new_file_id_2
     connect.clean_db(engine)
 
 
