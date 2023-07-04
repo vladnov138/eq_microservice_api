@@ -13,10 +13,10 @@ from loguru import logger
 from matplotlib import pyplot as plt
 from pydantic import EmailStr
 from sqlalchemy import create_engine
-from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
+from earthquakeplotlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
     get_dist_time, plot_distance_time
 
-from app.create_pictures import eq_location
+from create_pictures import eq_location
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
