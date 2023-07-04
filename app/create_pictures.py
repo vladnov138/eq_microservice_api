@@ -5,7 +5,7 @@ from datetime import (datetime,
 from scipy.stats import norm
 import matplotlib.dates as mdates
 import numpy as np
-from vesninlib.vesninlib import EPICENTERS, retrieve_data_multiple_source, retrieve_data, get_dist_time, \
+from earthquakeplotlib import EPICENTERS, retrieve_data_multiple_source, retrieve_data, get_dist_time, \
     plot_distance_time, plot_line, plot_sites, get_sites_coords, select_visible_sats_data, get_visible_sats_names, \
     select_sats_by_params, select_reoder_data, get_dtecs, calculate_distances_from_epicenter, DEFAULT_PARAMS
 

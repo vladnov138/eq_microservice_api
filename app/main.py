@@ -15,11 +15,11 @@ from loguru import logger
 from matplotlib import pyplot as plt
 from pydantic import EmailStr
 from sqlalchemy import create_engine
-from vesninlib.vesninlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
-    get_dist_time, plot_distance_time, EPICENTERS, get_sites_coords, select_visible_sats_data, get_visible_sats_names, \
-    select_sats_by_params, select_reoder_data, get_dtecs, calculate_distances_from_epicenter, plot_line
 
-from app.modules.helper import plot_single_sat, fit_and_plot_distribution
+from earthquakeplotlib import plot_maps, _UTC, plot_map, retrieve_data, plot_sites, retrieve_data_multiple_source, \
+    get_dist_time, plot_distance_time
+
+from create_pictures import eq_location
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
